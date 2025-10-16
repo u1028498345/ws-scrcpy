@@ -1,10 +1,10 @@
-import { TrackerChangeSet } from '@dead50f7/adbkit/lib/TrackerChangeSet';
+import TrackerChangeSet from '@devicefarmer/adbkit/dist/src/TrackerChangeSet';
 import { Device } from '../Device';
 import { Service } from '../../services/Service';
-import AdbKitClient from '@dead50f7/adbkit/lib/adb/client';
+import AdbKitClient from '@devicefarmer/adbkit/dist/src/adb/client';
 import { AdbExtended } from '../adb';
 import GoogDeviceDescriptor from '../../../types/GoogDeviceDescriptor';
-import Tracker from '@dead50f7/adbkit/lib/adb/tracker';
+import Tracker from '@devicefarmer/adbkit/dist/src/adb/tracker';
 import Timeout = NodeJS.Timeout;
 import { BaseControlCenter } from '../../services/BaseControlCenter';
 import { ControlCenterCommand } from '../../../common/ControlCenterCommand';

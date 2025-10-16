@@ -1,6 +1,6 @@
-import Connection from '@dead50f7/adbkit/lib/adb/connection';
-import Parser from '@dead50f7/adbkit/lib/adb/parser';
-import Protocol from '@dead50f7/adbkit/lib/adb/protocol';
+import Connection from '@devicefarmer/adbkit/dist/src/adb/connection';
+import Parser from '@devicefarmer/adbkit/dist/src/adb/parser';
+import Protocol from '@devicefarmer/adbkit/dist/src/adb/protocol';
 import { Multiplexer } from '../../../packages/multiplexer/Multiplexer';
 
 export class ExtendedSync {
@@ -31,17 +31,17 @@ export class ExtendedSync {
                     return this.parser.unexpected(reply, 'DENT, DONE or FAIL');
             }
         };
-        this._sendCommandWithArg(Protocol.LIST, path);
+        await this._sendCommandWithArg(Protocol.LIST, path);
         return readNext();
     }
 
-    public pipePull(path: string, stream: Multiplexer): Promise<void> {
-        this._sendCommandWithArg(Protocol.RECV, `${path}`);
+    public async pipePull(path: string, stream: Multiplexer): Promise<void> {
+        await this._sendCommandWithArg(Protocol.RECV, `${path}`);
         return this._readData(stream);
     }
 
     public async pipeStat(path: string, stream: Multiplexer): Promise<void> {
-        this._sendCommandWithArg(Protocol.STAT, `${path}`);
+        await this._sendCommandWithArg(Protocol.STAT, `${path}`);
         const reply = await this.parser.readAscii(4);
         switch (reply) {
             case Protocol.STAT:
@@ -79,7 +79,7 @@ export class ExtendedSync {
         return readNext();
     }
 
-    private _sendCommandWithArg(cmd: string, arg: string): Connection {
+    private async _sendCommandWithArg(cmd: string, arg: string): Promise<void> {
         const arglen = Buffer.byteLength(arg, 'utf-8');
         const payload = Buffer.alloc(cmd.length + 4 + arglen);
         let pos = 0;
@@ -88,7 +88,7 @@ export class ExtendedSync {
         payload.writeUInt32LE(arglen, pos);
         pos += 4;
         payload.write(arg, pos);
-        return this.connection.write(payload);
+        await this.connection.write(payload);
     }
 
     private async _readError(stream: Multiplexer): Promise<void> {

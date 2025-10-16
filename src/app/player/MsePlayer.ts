@@ -21,7 +21,7 @@ export class MsePlayer extends BasePlayer {
     public static readonly playerCodeName = 'mse';
     public static readonly preferredVideoSettings: VideoSettings = new VideoSettings({
         lockedVideoOrientation: -1,
-        bitrate: 7340032,
+        bitrate: 8000000,
         maxFps: 60,
         iFrameInterval: 10,
         bounds: new Size(720, 720),

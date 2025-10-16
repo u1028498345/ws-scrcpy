@@ -1,6 +1,6 @@
-import Adb from '@dead50f7/adbkit/lib/adb';
+import Adb from '@devicefarmer/adbkit/dist/src/adb';
 import { ExtendedClient } from './ExtendedClient';
-import { ClientOptions } from '@dead50f7/adbkit/lib/ClientOptions';
+import { ClientOptions } from '@devicefarmer/adbkit/dist/src/ClientOptions';
 
 interface Options {
     host?: string;

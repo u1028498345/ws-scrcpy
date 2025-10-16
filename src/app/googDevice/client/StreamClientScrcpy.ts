@@ -30,6 +30,7 @@ import { ACTION } from '../../../common/Action';
 import { StreamReceiverScrcpy } from './StreamReceiverScrcpy';
 import { ParamsDeviceTracker } from '../../../types/ParamsDeviceTracker';
 import { ScrcpyFilePushStream } from '../filePush/ScrcpyFilePushStream';
+import { MediaType } from '../../../common/MediaType';
 
 type StartParams = {
     udid: string;
@@ -60,6 +61,11 @@ export class StreamClientScrcpy
     private filePushHandler?: FilePushHandler;
     private fitToScreen?: boolean;
     private readonly streamReceiver: StreamReceiverScrcpy;
+    // 增加音频流的处理
+    private audioContext?: AudioContext | null;
+    private scriptProcessor?: ScriptProcessorNode | null;
+    private isPlaying = false;
+    private audioBufferQueue: { left: Float32Array; right: Float32Array }[] = [];
 
     public static registerPlayer(playerClass: PlayerClass): void {
         if (playerClass.isSupported()) {
@@ -176,7 +182,35 @@ export class StreamClientScrcpy
             this.player.play();
         }
         if (this.player.getState() === STATE.PLAYING) {
-            this.player.pushFrame(new Uint8Array(data));
+            const data_array = new Uint8Array(data).buffer;
+            const dataView = new DataView(data_array);
+            let offset = 0;
+
+            // 1. 读取 flag 长度（4字节，大端序）
+            const flagLength = dataView.getUint32(offset);
+            offset += 4;
+            // console.log(`offset: ${offset}  flagLength: ${flagLength}`);
+            // 2. 读取 flag 内容（UTF-8 编码）
+            const flagBytes = new Uint8Array(data_array, offset, flagLength);
+            const flag = new TextDecoder('utf-8').decode(flagBytes);
+            offset += flagLength;
+
+            // 3. 剩余部分是原始音频数据
+            const newData = data_array.slice(offset);
+            switch (flag) {
+                case MediaType.VIDEO:
+                    this.player.pushFrame(new Uint8Array(newData));
+                    break;
+                case MediaType.AUDIO:
+                    // 音频未初始化的时候丢弃
+                    if (!this.audioContext) return;
+                    // console.log('audioContext： 已经初始化');
+                    this.processAudioData(newData);
+                    break;
+                default:
+                    break;
+            }
+            // this.player.pushFrame(new Uint8Array(data));
         }
     };
 
@@ -260,6 +294,105 @@ export class StreamClientScrcpy
         this.touchHandler?.release();
         this.touchHandler = undefined;
     };
+
+    public initAudioContext() {
+        if (this.audioContext) return;
+        try {
+            this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+
+            this.scriptProcessor = this.audioContext.createScriptProcessor(1024, 2, 2);
+
+            this.scriptProcessor.onaudioprocess = (e) => {
+                if (!this.isPlaying) return;
+
+                const left = e.outputBuffer.getChannelData(0);
+                const right = e.outputBuffer.getChannelData(1);
+
+                // 检查缓冲区下溢
+                if (this.audioBufferQueue.length === 0) {
+                    left.fill(0);
+                    right.fill(0);
+                    return;
+                }
+
+                const { left: dataLeft, right: dataRight }: any = this.audioBufferQueue.shift();
+
+                // 确保数据长度匹配
+                const copyLength = Math.min(left.length, dataLeft.length);
+                for (let i = 0; i < copyLength; i++) {
+                    left[i] = dataLeft[i];
+                    right[i] = dataRight[i];
+                }
+
+                // 如有剩余空间填充静音
+                if (copyLength < left.length) {
+                    for (let i = copyLength; i < left.length; i++) {
+                        left[i] = 0;
+                        right[i] = 0;
+                    }
+                }
+            };
+
+            this.scriptProcessor.connect(this.audioContext.destination);
+        } catch (error) {
+            console.error('初始化失败:', error);
+        }
+    }
+
+    public releaseAudioContext() {
+        this.scriptProcessor?.disconnect();
+        this.audioContext?.close();
+        this.scriptProcessor = null;
+        this.audioContext = null;
+        this.isPlaying = false;
+        this.audioBufferQueue = [];
+    }
+
+    public processAudioData(arrayBuffer: ArrayBuffer) {
+        if (!this.audioContext) return;
+
+        try {
+            const int16Data = new Int16Array(arrayBuffer);
+            const sampleCount = int16Data.length / 2;
+
+            // 分批处理大数据包
+            const chunkSize = 1024;
+            for (let i = 0; i < sampleCount; i += chunkSize) {
+                const chunkEnd = Math.min(i + chunkSize, sampleCount);
+                const left = new Float32Array(chunkEnd - i);
+                const right = new Float32Array(chunkEnd - i);
+
+                for (let j = i, k = 0; j < chunkEnd; j++, k++) {
+                    const idx = j * 2;
+                    left[k] = int16Data[idx] / 32768.0;
+                    right[k] = int16Data[idx + 1] / 32768.0;
+                }
+
+                this.audioBufferQueue.push({ left, right });
+            }
+
+            // 动态调整缓冲阈值
+            const bufferThreshold = Math.max(2, Math.floor((0.2 * this.audioContext.sampleRate) / 1024));
+
+            if (!this.isPlaying && this.audioBufferQueue.length > bufferThreshold) {
+                this.startPlayback();
+            }
+        } catch (error) {
+            console.error('音频处理错误:', error);
+        }
+    }
+
+    public startPlayback() {
+        if (!this.audioContext || this.isPlaying) return;
+
+        if (this.audioContext.state === 'suspended') {
+            this.audioContext.resume().then(() => {
+                this.isPlaying = true;
+            });
+        } else {
+            this.isPlaying = true;
+        }
+    }
 
     public startStream({ udid, player, playerName, videoSettings, fitToScreen }: StartParams): void {
         if (!udid) {

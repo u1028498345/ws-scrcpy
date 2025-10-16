@@ -10,32 +10,32 @@ import { BasePlayer } from '../../player/BasePlayer';
 
 const BUTTONS = [
     {
-        title: 'Power',
+        title: '电源',
         code: KeyEvent.KEYCODE_POWER,
         icon: SvgImage.Icon.POWER,
     },
     {
-        title: 'Volume up',
+        title: '音量增大',
         code: KeyEvent.KEYCODE_VOLUME_UP,
         icon: SvgImage.Icon.VOLUME_UP,
     },
     {
-        title: 'Volume down',
+        title: '音量减小',
         code: KeyEvent.KEYCODE_VOLUME_DOWN,
         icon: SvgImage.Icon.VOLUME_DOWN,
     },
     {
-        title: 'Back',
+        title: '返回',
         code: KeyEvent.KEYCODE_BACK,
         icon: SvgImage.Icon.BACK,
     },
     {
-        title: 'Home',
+        title: '主页',
         code: KeyEvent.KEYCODE_HOME,
         icon: SvgImage.Icon.HOME,
     },
     {
-        title: 'Overview',
+        title: '任务',
         code: KeyEvent.KEYCODE_APP_SWITCH,
         icon: SvgImage.Icon.OVERVIEW,
     },
@@ -75,7 +75,7 @@ export class GoogToolBox extends ToolBox {
             return button;
         });
         if (player.supportsScreenshot) {
-            const screenshot = new ToolBoxButton('Take screenshot', SvgImage.Icon.CAMERA);
+            const screenshot = new ToolBoxButton('设备截图', SvgImage.Icon.CAMERA);
             screenshot.addEventListener('click', () => {
                 player.createScreenshot(client.getDeviceName());
             });
@@ -83,7 +83,7 @@ export class GoogToolBox extends ToolBox {
         }
 
         const keyboard = new ToolBoxCheckbox(
-            'Capture keyboard',
+            '捕获键盘',
             SvgImage.Icon.KEYBOARD,
             `capture_keyboard_${udid}_${playerName}`,
         );
@@ -92,6 +92,19 @@ export class GoogToolBox extends ToolBox {
             client.setHandleKeyboardEvents(element.checked);
         });
         elements.push(keyboard);
+
+        // 增加音频传输的开关
+        const audio = new ToolBoxCheckbox('捕获音频', SvgImage.Icon.AUDIO, `capture_audio_${udid}_${playerName}`);
+        audio.addEventListener('click', (_, el) => {
+            const element = el.getElement();
+            console.log(`element.checked : ${element.checked}`);
+            if (element.checked) {
+                client.initAudioContext();
+            } else {
+                client.releaseAudioContext();
+            }
+        });
+        elements.push(audio);
 
         if (moreBox) {
             const displayId = player.getVideoSettings().displayId;

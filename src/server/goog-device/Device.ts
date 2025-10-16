@@ -1,6 +1,6 @@
 import { AdbExtended } from './adb';
-import AdbKitClient from '@dead50f7/adbkit/lib/adb/client';
-import PushTransfer from '@dead50f7/adbkit/lib/adb/sync/pushtransfer';
+import AdbKitClient from '@devicefarmer/adbkit/dist/src/adb/client';
+import PushTransfer from '@devicefarmer/adbkit/dist/src/adb/sync/pushtransfer';
 import { spawn } from 'child_process';
 import { NetInterface } from '../../types/NetInterface';
 import { TypedEmitter } from '../../common/TypedEmitter';
@@ -101,6 +101,7 @@ export class Device extends TypedEmitter<DeviceEvents> {
         return new Promise<string>((resolve, reject) => {
             const cmd = 'adb';
             const args = ['-s', `${this.udid}`, 'shell', command];
+            console.log(args);
             const adb = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'pipe'] });
             let output = '';
 
@@ -127,13 +128,14 @@ export class Device extends TypedEmitter<DeviceEvents> {
 
     public async runShellCommandAdbKit(command: string): Promise<string> {
         return this.client
-            .shell(this.udid, command)
+            .getDevice(this.udid)
+            .shell(command)
             .then(AdbExtended.util.readAll)
             .then((output: Buffer) => output.toString().trim());
     }
 
     public async push(contents: string, path: string): Promise<PushTransfer> {
-        return this.client.push(this.udid, contents, path);
+        return this.client.getDevice(this.udid).push(contents, path);
     }
 
     public async getProperties(): Promise<Record<string, string> | undefined> {
@@ -143,7 +145,7 @@ export class Device extends TypedEmitter<DeviceEvents> {
         if (!this.connected) {
             return;
         }
-        this.properties = await this.client.getProperties(this.udid);
+        this.properties = await this.client.getDevice(this.udid).getProperties();
         return this.properties;
     }
 

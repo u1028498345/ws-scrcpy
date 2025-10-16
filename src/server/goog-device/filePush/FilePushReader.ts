@@ -1,7 +1,7 @@
 import { ReadableOptions } from 'stream';
 import { CommandControlMessage, FilePushState } from '../../../app/controlMessage/CommandControlMessage';
 import { FilePushResponseStatus } from '../../../app/googDevice/filePush/FilePushResponseStatus';
-import PushTransfer from '@dead50f7/adbkit/lib/adb/sync/pushtransfer';
+import PushTransfer from '@devicefarmer/adbkit/dist/src/adb/sync/pushtransfer';
 import { ReadStream } from './ReadStream';
 import { AdbExtended } from '../adb';
 
@@ -191,7 +191,7 @@ export class FilePushReader {
         this.readStream = new ReadStream(this.fileName, opts);
         this.readStream.push(chunk);
         const client = AdbExtended.createClient();
-        this.pushTransfer = await client.push(this.serial, this.readStream, this.fileName);
+        this.pushTransfer = await client.getDevice(this.serial).push(this.readStream, this.fileName);
         client.on('error', (error: Error) => {
             console.error(`Client error (${this.serial} | ${this.fileName}):`, error.message);
             this.closeWithError(FilePushResponseStatus.ERROR_OTHER, error.message);

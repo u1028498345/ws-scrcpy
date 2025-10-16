@@ -5,15 +5,15 @@ import { ACTION } from '../../common/Action';
 import { AdbExtended } from './adb';
 import { DevtoolsInfo, RemoteBrowserInfo, RemoteTarget, VersionMetadata } from '../../types/RemoteDevtools';
 import { URL } from 'url';
-import { Forward } from '@dead50f7/adbkit/lib/Forward';
-import Entry from '@dead50f7/adbkit/lib/adb/sync/entry';
-import Stats from '@dead50f7/adbkit/lib/adb/sync/stats';
-import PullTransfer from '@dead50f7/adbkit/lib/adb/sync/pulltransfer';
+import Forward from '@devicefarmer/adbkit/dist/src/Forward';
+import Entry from '@devicefarmer/adbkit/dist/src/adb/sync/entry';
+import Stats from '@devicefarmer/adbkit/dist/src/adb/sync/stats';
+import PullTransfer from '@devicefarmer/adbkit/dist/src/adb/sync/pulltransfer';
 import { FileStats } from '../../types/FileStats';
-import Protocol from '@dead50f7/adbkit/lib/adb/protocol';
+import Protocol from '@devicefarmer/adbkit/dist/src/adb/protocol';
 import { Multiplexer } from '../../packages/multiplexer/Multiplexer';
 import { ReadStream } from 'fs';
-import PushTransfer from '@dead50f7/adbkit/lib/adb/sync/pushtransfer';
+import PushTransfer from '@devicefarmer/adbkit/dist/src/adb/sync/pushtransfer';
 
 type IncomingMessage = {
     statusCode?: number;
@@ -37,7 +37,7 @@ export class AdbUtils {
 
     public static async push(serial: string, stream: ReadStream, pathString: string): Promise<PushTransfer> {
         const client = AdbExtended.createClient();
-        const transfer = await client.push(serial, stream, pathString);
+        const transfer = await client.getDevice(serial).push(stream, pathString);
         client.on('error', (error: Error) => {
             transfer.emit('error', error);
         });
@@ -47,7 +47,7 @@ export class AdbUtils {
     public static async stats(serial: string, pathString: string, stats?: Stats, deep = 0): Promise<Stats> {
         if (!stats || (stats.isSymbolicLink() && pathString.endsWith('/'))) {
             const client = AdbExtended.createClient();
-            stats = await client.stat(serial, pathString);
+            stats = await client.getDevice(serial).stat(pathString);
         }
         if (stats.isSymbolicLink()) {
             if (deep === 5) {
@@ -77,7 +77,7 @@ export class AdbUtils {
 
     public static async readdir(serial: string, pathString: string): Promise<FileStats[]> {
         const client = AdbExtended.createClient();
-        const list = await client.readdir(serial, pathString);
+        const list = await client.getDevice(serial).readdir(pathString);
         const all = list.map(async (entry) => {
             if (entry.isSymbolicLink()) {
                 const stat = await this.stats(serial, path.join(pathString, entry.name));
@@ -91,7 +91,7 @@ export class AdbUtils {
 
     public static async pipePullFile(serial: string, pathString: string): Promise<PullTransfer> {
         const client = AdbExtended.createClient();
-        const transfer = await client.pull(serial, pathString);
+        const transfer = await client.getDevice(serial).pull(pathString);
 
         transfer.on('progress', function (stats) {
             console.log('[%s] [%s] Pulled %d bytes so far', serial, pathString, stats.bytesTransferred);
@@ -121,7 +121,7 @@ export class AdbUtils {
 
     public static async pipePullFileToStream(serial: string, pathString: string, stream: Multiplexer): Promise<void> {
         const client = AdbExtended.createClient();
-        const transfer = await client.pull(serial, pathString);
+        const transfer = await client.getDevice(serial).pull(pathString);
         transfer.on('data', (data) => {
             stream.send(Buffer.concat([Buffer.from(Protocol.DATA, 'ascii'), data]));
         });
@@ -139,7 +139,7 @@ export class AdbUtils {
 
     public static async forward(serial: string, remote: string): Promise<number> {
         const client = AdbExtended.createClient();
-        const forwards = await client.listForwards(serial);
+        const forwards = await client.getDevice(serial).listForwards();
         const forward = forwards.find((item: Forward) => {
             return item.remote === remote && item.local.startsWith('tcp:') && item.serial === serial;
         });
@@ -149,13 +149,13 @@ export class AdbUtils {
         }
         const port = await portfinder.getPortPromise();
         const local = `tcp:${port}`;
-        await client.forward(serial, local, remote);
+        await client.getDevice(serial).forward(local, remote);
         return port;
     }
 
     public static async getDevtoolsRemoteList(serial: string): Promise<string[]> {
         const client = AdbExtended.createClient();
-        const stream = await client.shell(serial, 'cat /proc/net/unix');
+        const stream = await client.getDevice(serial).shell('cat /proc/net/unix');
         const buffer = await AdbExtended.util.readAll(stream);
         const lines = buffer
             .toString()
@@ -186,7 +186,7 @@ export class AdbUtils {
         url: string,
     ): Promise<IncomingMessage> {
         const client = AdbExtended.createClient();
-        const socket = await client.openLocal(serial, `localabstract:${unixSocketName}`);
+        const socket = await client.getDevice(serial).openLocal(`localabstract:${unixSocketName}`);
         const request = new (http.ClientRequest as any)(url, {
             createConnection: () => {
                 return socket;
@@ -362,7 +362,7 @@ export class AdbUtils {
 
     public static async getDeviceName(serial: string): Promise<string> {
         const client = AdbExtended.createClient();
-        const props = await client.getProperties(serial);
+        const props = await client.getDevice(serial).getProperties();
         return props['ro.product.model'] || 'Unknown device';
     }
 }

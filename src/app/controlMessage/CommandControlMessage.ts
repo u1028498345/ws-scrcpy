@@ -49,8 +49,9 @@ export class CommandControlMessage extends ControlMessage {
         const textBytes: Uint8Array | null = text ? Util.stringToUtf8ByteArray(text) : null;
         const textLength = textBytes ? textBytes.length : 0;
         let offset = 0;
-        const buffer = Buffer.alloc(1 + 1 + 4 + textLength);
+        const buffer = Buffer.alloc(1 + 8 + 1 + 4 + textLength);
         offset = buffer.writeInt8(event.type, offset);
+        offset = buffer.writeBigInt64BE(BigInt(0), offset);
         offset = buffer.writeInt8(paste ? 1 : 0, offset);
         offset = buffer.writeInt32BE(textLength, offset);
         if (textBytes) {
@@ -58,6 +59,16 @@ export class CommandControlMessage extends ControlMessage {
                 buffer.writeUInt8(byte, index + offset);
             });
         }
+        event.buffer = buffer;
+        return event;
+    }
+
+    public static createGetClipboardCommand(): CommandControlMessage {
+        const event = new CommandControlMessage(ControlMessage.TYPE_GET_CLIPBOARD);
+        let offset = 0;
+        const buffer = Buffer.alloc(1 + 1);
+        offset = buffer.writeInt8(event.type, offset);
+        buffer.writeInt8(1, offset);
         event.buffer = buffer;
         return event;
     }
