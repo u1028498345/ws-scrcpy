@@ -1,5 +1,12 @@
-import { Server as WSServer } from 'ws';
-import WS from 'ws';
+import WebSocket = require('ws');
+
+// Type aliases
+type WSServer = WebSocket.Server;
+type WS = WebSocket;
+
+// Value aliases
+const WSServer = WebSocket.Server;
+const WS = WebSocket;
 import { Service } from './Service';
 import { HttpServer, ServerAndPort } from './HttpServer';
 import { MwFactory } from '../mw/Mw';

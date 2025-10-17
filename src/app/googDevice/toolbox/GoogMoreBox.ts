@@ -36,6 +36,7 @@ export class GoogMoreBox {
         input.classList.add('text-area');
         const sendButton = document.createElement('button');
         sendButton.innerText = 'Send as keys';
+        sendButton.classList.add('btn', 'btn-primary');
 
         const inputWrapper = GoogMoreBox.wrap('p', [input, sendButton], moreBox);
         sendButton.onclick = () => {
@@ -48,6 +49,7 @@ export class GoogMoreBox {
         const codes = CommandControlMessage.Commands;
         for (const [action, command] of codes.entries()) {
             const btn = document.createElement('button');
+            btn.classList.add('btn');
             let bitrateInput: HTMLInputElement;
             let maxFpsInput: HTMLInputElement;
             let iFrameIntervalInput: HTMLInputElement;
@@ -74,6 +76,7 @@ export class GoogMoreBox {
                 const bitrateLabel = document.createElement('label');
                 bitrateLabel.innerText = 'Bitrate:';
                 bitrateInput = document.createElement('input');
+                bitrateInput.classList.add('input');
                 bitrateInput.placeholder = `${preferredSettings.bitrate} bps`;
                 bitrateInput.value = videoSettings.bitrate.toString();
                 GoogMoreBox.wrap('div', [bitrateLabel, bitrateInput], innerDiv);
@@ -82,6 +85,7 @@ export class GoogMoreBox {
                 const maxFpsLabel = document.createElement('label');
                 maxFpsLabel.innerText = 'Max fps:';
                 maxFpsInput = document.createElement('input');
+                maxFpsInput.classList.add('input');
                 maxFpsInput.placeholder = `${preferredSettings.maxFps} fps`;
                 maxFpsInput.value = videoSettings.maxFps.toString();
                 GoogMoreBox.wrap('div', [maxFpsLabel, maxFpsInput], innerDiv);
@@ -90,6 +94,7 @@ export class GoogMoreBox {
                 const iFrameIntervalLabel = document.createElement('label');
                 iFrameIntervalLabel.innerText = 'I-Frame Interval:';
                 iFrameIntervalInput = document.createElement('input');
+                iFrameIntervalInput.classList.add('input');
                 iFrameIntervalInput.placeholder = `${preferredSettings.iFrameInterval} seconds`;
                 iFrameIntervalInput.value = videoSettings.iFrameInterval.toString();
                 GoogMoreBox.wrap('div', [iFrameIntervalLabel, iFrameIntervalInput], innerDiv);
@@ -102,6 +107,7 @@ export class GoogMoreBox {
                 const maxWidthLabel = document.createElement('label');
                 maxWidthLabel.innerText = 'Max width:';
                 maxWidthInput = document.createElement('input');
+                maxWidthInput.classList.add('input');
                 maxWidthInput.placeholder = `${pWidth} px`;
                 maxWidthInput.value = width.toString();
                 GoogMoreBox.wrap('div', [maxWidthLabel, maxWidthInput], innerDiv);
@@ -110,6 +116,7 @@ export class GoogMoreBox {
                 const maxHeightLabel = document.createElement('label');
                 maxHeightLabel.innerText = 'Max height:';
                 maxHeightInput = document.createElement('input');
+                maxHeightInput.classList.add('input');
                 maxHeightInput.placeholder = `${pHeight} px`;
                 maxHeightInput.value = height.toString();
                 GoogMoreBox.wrap('div', [maxHeightLabel, maxHeightInput], innerDiv);
@@ -118,10 +125,12 @@ export class GoogMoreBox {
                 innerDiv.appendChild(btn);
                 const fitButton = document.createElement('button');
                 fitButton.innerText = 'Fit';
+                fitButton.classList.add('btn', 'btn-sm');
                 fitButton.onclick = this.fit;
                 innerDiv.insertBefore(fitButton, innerDiv.firstChild);
                 const resetButton = document.createElement('button');
                 resetButton.innerText = 'Reset';
+                resetButton.classList.add('btn', 'btn-sm');
                 resetButton.onclick = this.reset;
                 innerDiv.insertBefore(resetButton, innerDiv.firstChild);
                 commands.push(spoiler);
@@ -137,6 +146,7 @@ export class GoogMoreBox {
             }
             btn.innerText = command;
             if (action === ControlMessage.TYPE_CHANGE_STREAM_PARAMETERS) {
+                btn.classList.add('btn-primary');
                 btn.onclick = () => {
                     const bitrate = parseInt(bitrateInput.value, 10);
                     const maxFps = parseInt(maxFpsInput.value, 10);
@@ -163,6 +173,7 @@ export class GoogMoreBox {
                     client.sendNewVideoSetting(videoSettings);
                 };
             } else if (action === CommandControlMessage.TYPE_SET_CLIPBOARD) {
+                btn.classList.add('btn-primary');
                 btn.onclick = () => {
                     const text = input.value;
                     if (text) {
@@ -170,6 +181,7 @@ export class GoogMoreBox {
                     }
                 };
             } else if (action == CommandControlMessage.TYPE_GET_CLIPBOARD) {
+                btn.classList.add('btn-primary');
                 btn.onclick = () => {
                     client.sendMessage(CommandControlMessage.createGetClipboardCommand());
                 };
@@ -198,6 +210,7 @@ export class GoogMoreBox {
         };
         const sendScreenPowerModeButton = document.createElement('button');
         sendScreenPowerModeButton.innerText = `${buttonTextPrefix} ${mode}`;
+        sendScreenPowerModeButton.classList.add('btn', 'btn-sm');
         sendScreenPowerModeButton.onclick = () => {
             const message = CommandControlMessage.createSetScreenPowerModeCommand(screenPowerModeCheck.checked);
             client.sendMessage(message);
@@ -236,6 +249,7 @@ export class GoogMoreBox {
 
         const stopBtn = document.createElement('button') as HTMLButtonElement;
         stopBtn.innerText = `Disconnect`;
+        stopBtn.classList.add('btn', 'btn-danger');
         stopBtn.onclick = stop;
 
         GoogMoreBox.wrap('p', [stopBtn], moreBox);

@@ -1,10 +1,16 @@
 import { BaseCanvasBasedPlayer } from './BaseCanvasBasedPlayer';
-import TinyH264Worker from 'worker-loader!./../../../vendor/tinyh264/H264NALDecoder.worker';
+// 移除worker-loader的使用
+// import TinyH264Worker from 'worker-loader!./../../../vendor/tinyh264/H264NALDecoder.worker';
 import VideoSettings from '../VideoSettings';
 import YUVWebGLCanvas from '../../../vendor/tinyh264/YUVWebGLCanvas';
 import YUVCanvas from '../../../vendor/tinyh264/YUVCanvas';
 import Size from '../Size';
 import { DisplayInfo } from '../DisplayInfo';
+
+// 定义worker类型
+interface TinyH264Worker extends Worker {
+  new (): TinyH264Worker;
+}
 
 type WorkerMessage = {
     type: string;
@@ -57,7 +63,9 @@ export class TinyH264Player extends BaseCanvasBasedPlayer {
     };
 
     private initWorker(): void {
-        this.worker = new TinyH264Worker();
+        // 使用标准的Worker API替代worker-loader
+        const workerPath = './H264NALDecoder.worker.js'; // 假设worker文件在相同目录下
+        this.worker = new Worker(workerPath) as TinyH264Worker;
         this.worker.addEventListener('message', this.onWorkerMessage);
     }
 
@@ -100,6 +108,7 @@ export class TinyH264Player extends BaseCanvasBasedPlayer {
         if (this.worker) {
             this.worker.removeEventListener('message', this.onWorkerMessage);
             this.worker.postMessage({ type: 'release', renderStateId: TinyH264Player.videoStreamId });
+            this.worker.terminate(); // 终止worker
             delete this.worker;
         }
     }

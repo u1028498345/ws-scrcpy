@@ -1,24 +1,29 @@
 :root {
-    --device-border-color: hsl(0, 0%, 82%);
-    --device-list-stripe-color: hsl(0, 0%, 96%);
-    --device-list-default-color: hsl(0, 0%, 100%);
-    --device-list-hover-color: hsl(218, 67%, 95%);
+    --device-border-color: #dee2e6;
+    --device-list-stripe-color: #f8f9fa;
+    --device-list-default-color: #ffffff;
+    --device-list-hover-color: #e9ecef;
+    --device-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --device-card-shadow-hover: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --device-border-color: hsl(0, 0%, 32%);
-        --device-list-stripe-color: hsl(0, 0%, 16%);
-        --device-list-default-color: hsl(0, 0%, 14%);
-        --device-list-hover-color: hsl(218, 17%, 18%);
+        --device-border-color: #373a40;
+        --device-list-stripe-color: #2c2e33;
+        --device-list-default-color: #25262b;
+        --device-list-hover-color: #373a40;
+        --device-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        --device-card-shadow-hover: 0 4px 6px rgba(0, 0, 0, 0.3);
     }
 }
-
 
 body.list {
     height: auto;
     width: auto;
     overflow: auto;
+    padding: 1rem;
+    background-color: var(--main-bg-color);
 }
 
 #devices {
@@ -30,11 +35,12 @@ body.list {
 
 body.stream #devices {
     background-color: var(--device-list-default-color);
-    opacity: .8;
+    opacity: .9;
     position: absolute;
     top: 0;
     left: 0;
     z-index: 3;
+    padding: 1rem;
 }
 
 body.list #device_list_menu {
@@ -43,10 +49,10 @@ body.list #device_list_menu {
 
 #device_list_menu {
     display: block;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    z-index: 4;
+    position: fixed;
+    bottom: 1rem;
+    left: 1rem;
+    z-index: 1000;
 }
 
 #devices .device-list button {
@@ -54,97 +60,120 @@ body.list #device_list_menu {
     color: var(--button-text-color);
 }
 
-#devices .device-list div.device:nth-child(2n+1){
+#devices .device-list .device {
     background-color: var(--device-list-default-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--device-card-shadow);
+    margin-bottom: 1rem;
+    padding: 1rem;
+    transition: var(--transition);
+    position: relative;
 }
 
-#devices .device-list div.device:nth-child(2n){
+#devices .device-list .device:hover {
+    box-shadow: var(--device-card-shadow-hover);
+    transform: translateY(-2px);
+}
+
+#devices .device-list .device:nth-child(2n) {
     background-color: var(--device-list-stripe-color);
 }
 
 #devices .device-header {
-    padding: 2px 0;
-}
-
-#devices .device-header div {
-    display: inline-flex;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--device-border-color);
+    margin-bottom: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
 }
 
 #devices .device-name {
-    font-size: 120%;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-right: 0.5rem;
 }
 
 #devices .device-model {
-    font-size: 110%;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-color-light);
 }
 
 #devices .device-serial {
     color: var(--url-color);
-    font-size: 80%;
-    margin-left: 6px;
+    font-size: 0.875rem;
+    margin-left: 0.5rem;
+    background-color: var(--control-buttons-bg-color);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius);
 }
 
 #devices .device-version {
-    font-size: 100%;
-    margin-left: 6px;
+    font-size: 1rem;
+    margin-left: 0.5rem;
     align-items: baseline;
+    background-color: var(--control-buttons-bg-color);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
 }
 
 #devices .device-version .sdk-version {
-    font-size: 75%;
+    font-size: 0.875rem;
     color: var(--url-color);
-    margin-left: 0.2em;
+    margin-left: 0.25rem;
 }
 
 #devices .device-state {
-    border-radius: 25px;
-    background-color: red;
-    font-size: 80%;
-    margin-left: 6px;
-    width: 1em;
-    height: 1em;
+    border-radius: 50%;
+    background-color: #fa5252;
+    font-size: 0;
+    margin-left: 0.5rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    display: inline-block;
 }
 
 #devices .device.active .device-state {
-    background-color: green;
+    background-color: #40c057;
 }
 
 #devices .device-list {
     position: relative;
-    bottom: 0;
-    left: 0;
     width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 #devices .device-list {
     border-spacing: 0;
     border-collapse: collapse;
-    font-family: monospace;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: var(--font-size);
-}
-
-#devices .device-list div.device {
-    padding: 5px 20px 5px;
-}
-
-#devices .device-list div.device:hover {
-    background-color: var(--device-list-hover-color)
 }
 
 #devices .device-list div.device select {
     color: var(--text-color);
-    background-color: var(--main-bg-color);
+    background-color: var(--header-bg-color);
     margin-left: 0;
-    border: none;
+    border: 1px solid var(--button-border-color);
+    border-radius: var(--border-radius);
+    padding: 0.5rem;
+    transition: var(--transition);
+    width: auto;
+    min-width: 150px;
 }
 
 #devices .device-list div.device:hover select {
-    background-color: var(--device-list-hover-color);;
+    background-color: var(--device-list-hover-color);
 }
 
 #devices .device-list div.desc-block {
-    margin: .3em;
+    margin: 0.25rem 0.5rem 0.25rem 0;
     display: inline-flex;
+    align-items: center;
 }
 
 #devices .device-list div.desc-block.hidden {
@@ -155,9 +184,12 @@ body.list #device_list_menu {
 #devices .device-list div.desc-block.server_pid,
 #devices .device-list div.desc-block.net_interface {
     border: 1px solid var(--device-border-color);
-    border-radius: .3em;
+    border-radius: var(--border-radius);
     overflow: hidden;
     white-space: nowrap;
+    padding: 0.25rem 0.5rem;
+    margin-right: 0.5rem;
+    background-color: var(--control-buttons-bg-color);
 }
 
 #devices .device-list div.device div.desc-block.stream button.action-button {
@@ -165,11 +197,23 @@ body.list #device_list_menu {
 }
 
 #devices .device-list div.desc-block button {
-    fill: var(--text-color)
+    fill: var(--text-color);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+}
+
+#devices .device-list div.desc-block button:hover {
+    background-color: rgba(0, 0, 0, 0.05);
 }
 
 #devices .device-list div.desc-block button > span {
-    padding: 0 .5em;
+    padding: 0 0.5rem;
 }
 
 #devices .device-list div.desc-block button > span,
@@ -196,6 +240,7 @@ body.list #device_list_menu {
 
 #devices .device-list .device.not-active {
     color: var(--text-color-light);
+    opacity: 0.7;
 }
 
 #devices .device-list .device.not-active a {
@@ -210,6 +255,10 @@ body.list #device_list_menu {
     border: none;
     background-color: rgba(0, 0, 0, 0);
     color: inherit;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
 }
 
 #devices .device-list div.device div.desc-block .action-button.update-interfaces-button {
@@ -222,6 +271,7 @@ body.list #device_list_menu {
 
 #devices .device-list .device.active div.desc-block .action-button:hover {
     color: var(--kill-button-hover-color);
+    background-color: rgba(250, 82, 82, 0.1);
 }
 
 #devices .device-list .device.active div.desc-block button.action-button:hover > svg > path {
@@ -229,7 +279,52 @@ body.list #device_list_menu {
 }
 
 #devices .tracker-name {
-    padding: 5px 20px 5px;
-    font-size: larger;
-    font-weight: bolder;
+    padding: 1rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    background-color: var(--header-bg-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* 修复服务块布局 */
+.services {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .device-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .device-name {
+        margin-bottom: 0.5rem;
+    }
+    
+    .device-serial, .device-version {
+        margin: 0.25rem 0;
+    }
+    
+    .services {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    #devices .device-list div.desc-block {
+        margin: 0.25rem 0;
+        width: 100%;
+    }
+    
+    #devices .device-list div.desc-block.stream,
+    #devices .device-list div.desc-block.server_pid,
+    #devices .device-list div.desc-block.net_interface {
+        width: 100%;
+    }
 }

@@ -1,19 +1,40 @@
 .text-area {
     width: 100%;
     resize: vertical;
+    min-height: 100px;
+    padding: 0.75rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--button-border-color);
+    background-color: var(--header-bg-color);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: var(--font-size);
+    transition: var(--transition);
+    box-sizing: border-box;
+}
+
+.text-area:focus {
+    outline: none;
+    border-color: var(--link-color);
+    box-shadow: 0 0 0 3px rgba(34, 139, 230, 0.1);
 }
 
 .more-box {
     display: none;
     position: absolute;
-    background-color: var(--controls-bg-color);
-    z-index: 2;
-    padding: 0 .714rem .714rem .714rem;
+    background-color: var(--header-bg-color);
+    z-index: 100;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    border: 1px solid var(--button-border-color);
+    min-width: 300px;
+    max-width: 500px;
 }
 
 .text-with-shadow, .more-box label {
     color: var(--text-color);
-    text-shadow: var(--text-shadow-color) 0 0 .357rem;
+    text-shadow: var(--text-shadow-color) 0 0 0.357rem;
 }
 
 .spoiler > input ~ .box {
@@ -24,20 +45,80 @@
     display: block;
 }
 
+.spoiler > label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    user-select: none;
+}
+
+.spoiler > label:hover {
+    background-color: var(--device-list-hover-color);
+}
+
 .spoiler > label::before {
-    content: '►';
-    margin-right: 5px;
+    content: '▶';
+    margin-right: 8px;
+    transition: transform 0.2s ease;
 }
 
 .spoiler > input:checked ~ label::before {
-    content: '▼';
+    transform: rotate(90deg);
 }
 
 .spoiler > input:checked ~ div {
     display: block;
-    padding: 10px;
+    padding: 1rem 0.5rem;
 }
 
 .spoiler > input {
     display: none;
+}
+
+/* 新增卡片样式 */
+.card {
+    background-color: var(--header-bg-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-color);
+}
+
+.card-body {
+    color: var(--text-color);
+}
+
+/* 新增标签页样式 */
+.tabs {
+    display: flex;
+    border-bottom: 1px solid var(--button-border-color);
+    margin-bottom: 1rem;
+}
+
+.tab {
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: var(--transition);
+    color: var(--text-color-light);
+}
+
+.tab:hover {
+    color: var(--text-color);
+}
+
+.tab.active {
+    color: var(--link-color);
+    border-bottom-color: var(--link-color);
+    font-weight: 500;
 }

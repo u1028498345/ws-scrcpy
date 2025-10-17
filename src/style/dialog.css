@@ -1,10 +1,13 @@
 :root {
-    --block-top-padding: 0.5rem;
-    --block-bottom-padding: 0.5rem;
-    --button-top-padding: 0.2rem;
-    --button-bottom-padding: 0.2rem;
-    --header-height: 3rem;
-    --footer-height: 1.55rem;
+    --block-top-padding: 1rem;
+    --block-bottom-padding: 1rem;
+    --button-top-padding: 0.5rem;
+    --button-bottom-padding: 0.5rem;
+    --header-height: 3.5rem;
+    --footer-height: 3rem;
+    --dialog-border-radius: 8px;
+    --dialog-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    --dialog-shadow-dark: 0 10px 15px rgba(0, 0, 0, 0.3);
 }
 
 .dialog-background {
@@ -13,27 +16,53 @@
     position: fixed;
     top: 0;
     left: 0;
-    background-color: rgba(0, 0, 0, 0.75);
-    z-index: 3;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
 }
 
 .dialog-container {
-    font-family: monospace;
-    width: 75%;
-    max-width: 30rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    width: 90%;
+    max-width: 32rem;
     min-width: 20rem;
     background-color: var(--main-bg-color);
-    /*border-radius: 0.3rem;*/
+    border-radius: var(--dialog-border-radius);
     overflow: hidden;
+    box-shadow: var(--dialog-shadow);
+    animation: dialogShow 0.3s ease-out;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (prefers-color-scheme: dark) {
+    .dialog-container {
+        box-shadow: var(--dialog-shadow-dark);
+    }
+}
+
+@keyframes dialogShow {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .dialog-container.ready {
-    height: 100%;
-    min-height: 100%;
+    height: auto;
+    min-height: auto;
 }
 
 .dialog-container button, .dialog-container select, .dialog-container input {
-    font-family: monospace;
+    font-family: inherit;
 }
 
 .dialog-container button {
@@ -55,76 +84,131 @@
     align-items: center;
     width: auto;
     position: initial;
+    padding: 0 1.5rem;
+    border-bottom: 1px solid var(--button-border-color);
+    flex-shrink: 0;
+}
+
+.dialog-header.configureDialog {
+    justify-content: space-between;
+}
+
+.dialog-header.configureDialog .main-title {
+    flex-grow: 1;
+    text-align: center;
 }
 
 .dialog-header span.dialog-title {
     display: inline-block;
-    padding: 0 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
 }
 
 .dialog-body {
-    padding: var(--block-top-padding) 0.5rem var(--block-bottom-padding);
+    padding: var(--block-top-padding) 1.5rem var(--block-bottom-padding);
     background-color: var(--control-buttons-bg-color);
     overflow: auto;
+    flex-grow: 1;
 }
 
 .dialog-body.hidden {
-    height: 0;
-    padding: 0;
+    display: none;
 }
 
 .dialog-body.visible {
-    height: calc(
-            100%
-            - 2 * var(--block-top-padding)
-            - 2 * var(--block-bottom-padding)
-            - var(--header-height)
-            - var(--footer-height)
-    );
+    display: block;
 }
 
 .dialog-footer {
-    /*display: flex;*/
-    /*flex-direction: row-reverse;*/
-    padding: var(--block-top-padding) 0.5rem var(--block-bottom-padding);
-    background-color: var(--stream-bg-color);
+    padding: var(--block-top-padding) 1.5rem var(--block-bottom-padding);
+    background-color: var(--header-bg-color);
     height: var(--footer-height);
     overflow: hidden;
+    border-top: 1px solid var(--button-border-color);
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-shrink: 0;
 }
 
 .dialog-footer span.subtitle {
     font-weight: lighter;
     line-height: var(--footer-height);
     float: left;
+    color: var(--text-color-light);
+    font-size: 0.875rem;
+    margin-right: auto;
 }
 
 .dialog-footer button {
-    padding: var(--button-top-padding) 0.5rem var(--button-bottom-padding);
-    margin: 0 0 0 0.5rem;
-    border-radius: 0.3rem;
-    /*background-color: var(--main-bg-color);*/
+    padding: var(--button-top-padding) 1rem var(--button-bottom-padding);
+    margin: 0 0 0 0.75rem;
+    border-radius: var(--border-radius);
     color: var(--button-text-color);
     border: 1px solid var(--button-border-color);
     cursor: pointer;
-    background-color: rgba(0, 0, 0, 0);
-    height: var(--footer-height);
-    float: right;
+    background-color: var(--header-bg-color);
+    height: auto;
+    float: none;
+    min-width: 80px;
+    font-weight: 500;
+    transition: var(--transition);
+    box-shadow: var(--box-shadow);
+}
+
+.dialog-footer button:hover {
+    box-shadow: var(--box-shadow-hover);
+    transform: translateY(-1px);
+}
+
+.dialog-footer button:active {
+    transform: translateY(0);
 }
 
 .dialog-footer button:disabled {
     cursor: not-allowed;
     color: var(--text-color-light);
+    opacity: 0.6;
+    transform: none;
+    box-shadow: none;
+}
+
+.dialog-footer button.btn-primary {
+    background-color: var(--link-color);
+    color: white;
+    border-color: var(--link-color);
+    box-shadow: 0 2px 4px rgba(34, 139, 230, 0.3);
+}
+
+.dialog-footer button.btn-primary:hover {
+    background-color: #1c7ed6;
+    border-color: #1c7ed6;
+    box-shadow: 0 4px 6px rgba(34, 139, 230, 0.4);
+}
+
+.dialog-footer button.btn-danger {
+    background-color: var(--kill-button-hover-color);
+    color: white;
+    border-color: var(--kill-button-hover-color);
+    box-shadow: 0 2px 4px rgba(250, 82, 82, 0.3);
+}
+
+.dialog-footer button.btn-danger:hover {
+    background-color: #e03131;
+    border-color: #e03131;
+    box-shadow: 0 4px 6px rgba(250, 82, 82, 0.4);
 }
 
 .controls .label {
     grid-column: labels;
+    font-weight: 500;
+    color: var(--text-color);
 }
 
 .controls .input {
     grid-column: controls;
     box-sizing: border-box;
     margin: 0;
-    /*height: 2.75ex;*/
 }
 
 .controls .button {
@@ -134,7 +218,33 @@
 .controls {
     display: grid;
     grid-template-columns: [labels] 35% [controls] 65%;
-    padding: 1rem;
-    grid-gap: 0.2rem;
+    padding: 1rem 0;
+    grid-gap: 1rem;
     align-items: center;
+}
+
+.controls:last-child {
+    padding-bottom: 0;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.form-text {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--text-color-light);
 }

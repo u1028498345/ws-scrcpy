@@ -1,91 +1,100 @@
 :root {
-    --main-bg-color: hsl(0, 0%, 100%);
-    --stream-bg-color: hsl(0, 0%, 85%);
-    --shell-bg-color: hsl(0, 0%, 0%);
-    --text-shadow-color: hsl(218, 67%, 95%);
-    --header-bg-color: hsl(0, 0%, 95%);
-    --controls-bg-color: hsla(0, 0%, 95%, 0.8);
-    --control-buttons-bg-color: hsl(0, 0%, 95%);
-    --text-color: hsl(210, 16%, 22%);
-    --text-color-light: hsl(200, 16%, 52%);
-    --link-color: hsl(218, 85%, 43%);
-    --link-color-light: hsl(218, 85%, 73%);
-    --link-color_visited: hsl(271, 68%, 32%);
-    --link-color_visited-light: hsl(271, 68%, 72%);
-    --svg-checkbox-bg-color: hsl(172, 100%, 37%);
-    --svg-button-fill: hsl(199, 17%, 46%);
-    --kill-button-hover-color: hsl(342, 100%, 37%);
-    --url-color: hsl(0, 0%, 60%);
-    --button-text-color: hsl(214, 82%, 51%);
-    --button-border-color: hsl(0, 0%, 70%);
-    --progress-background-color: hsla(225, 100%, 50%, 0.2);
-    --progress-background-error-color: hsla(0, 100%, 50%, 0.2);
+    --main-bg-color: #f8f9fa;
+    --stream-bg-color: #e9ecef;
+    --shell-bg-color: #000000;
+    --text-shadow-color: rgba(0, 0, 0, 0.1);
+    --header-bg-color: #ffffff;
+    --controls-bg-color: rgba(255, 255, 255, 0.9);
+    --control-buttons-bg-color: #f1f3f5;
+    --text-color: #212529;
+    --text-color-light: #6c757d;
+    --link-color: #228be6;
+    --link-color-light: #74c0fc;
+    --link-color_visited: #845ef7;
+    --link-color_visited-light: #cc99ff;
+    --svg-checkbox-bg-color: #40c057;
+    --svg-button-fill: #495057;
+    --kill-button-hover-color: #fa5252;
+    --url-color: #868e96;
+    --button-text-color: #228be6;
+    --button-border-color: #dee2e6;
+    --progress-background-color: rgba(34, 139, 230, 0.2);
+    --progress-background-error-color: rgba(250, 82, 82, 0.2);
     --font-size: 14px;
+    --border-radius: 6px;
+    --box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --box-shadow-hover: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --transition: all 0.2s ease;
+    --dialog-border-radius: 8px;
+    --dialog-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --main-bg-color: hsl(0, 0%, 14%);
-        --stream-bg-color: hsl(0, 0%, 20%);
-        --shell-bg-color: hsl(0, 0%, 0%);
-        --text-shadow-color: hsl(218, 17%, 18%);
-        --header-bg-color: hsl(0, 0%, 20%);
-        --controls-bg-color: hsla(201, 18%, 19%, 0.8);
-        --control-buttons-bg-color: hsl(201, 18%, 19%);
-        --text-color: hsl(0, 0%, 90%);
-        --text-color-light: hsl(0, 0%, 60%);
-        --link-color: hsl(218, 63%, 70%);
-        --link-color-light: hsl(218, 63%, 50%);
-        --link-color_visited: hsl(267, 31%, 47%);
-        --link-color_visited-light: hsl(267, 31%, 27%);
-        --svg-checkbox-bg-color: hsl(172, 100%, 27%);
-        --svg-button-fill: hsl(0, 0%, 100%);
-        --kill-button-hover-color: hsl(342, 100%, 27%);
-        --url-color: hsl(0, 0%, 60%);
-        --device-list-stripe-color: hsl(0, 0%, 16%);
-        --device-list-default-color: hsl(0, 0%, 14%);
-        --button-text-color: hsl(214, 82%, 76%);
-        --button-border-color: hsl(213, 5%, 39%);
-        --progress-background-color: hsla(225, 100%, 50%, 0.2);
-        --progress-background-error-color: hsla(0, 100%, 50%, 0.2);
+        --main-bg-color: #1a1b1e;
+        --stream-bg-color: #25262b;
+        --shell-bg-color: #000000;
+        --text-shadow-color: rgba(0, 0, 0, 0.2);
+        --header-bg-color: #25262b;
+        --controls-bg-color: rgba(37, 38, 43, 0.9);
+        --control-buttons-bg-color: #2c2e33;
+        --text-color: #f8f9fa;
+        --text-color-light: #adb5bd;
+        --link-color: #4dabf7;
+        --link-color-light: #a5d8ff;
+        --link-color_visited: #b197fc;
+        --link-color_visited-light: #d0bfff;
+        --svg-checkbox-bg-color: #51cf66;
+        --svg-button-fill: #f8f9fa;
+        --kill-button-hover-color: #ff6b6b;
+        --url-color: #868e96;
+        --device-list-stripe-color: #2c2e33;
+        --device-list-default-color: #1a1b1e;
+        --button-text-color: #4dabf7;
+        --button-border-color: #373a40;
+        --progress-background-color: rgba(77, 171, 247, 0.2);
+        --progress-background-error-color: rgba(255, 107, 107, 0.2);
+        --dialog-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
     }
 }
 
 html {
     font-size: var(--font-size);
-}
-
-a {
-    color: var(--link-color);
-}
-
-a:visited {
-    color: var(--link-color_visited);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    height: 100%;
 }
 
 body {
     color: var(--text-color);
     background-color: var(--main-bg-color);
-    position: absolute;
+    position: relative;
     margin: 0;
-    height: 100%;
+    min-height: 100%;
     width: 100%;
-    overflow: hidden;
+    overflow: auto;
+    transition: var(--transition);
 }
-
 
 body.shell {
     background-color: var(--shell-bg-color);
+    height: 100vh;
+    overflow: hidden;
 }
 
 body.stream {
     background-color: var(--stream-bg-color);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .terminal-container {
     width: 100%;
     height: 100%;
     padding: 5px;
+    box-sizing: border-box;
 }
 
 :focus {
@@ -103,8 +112,10 @@ body.stream {
 
 .device-view {
     z-index: 1;
-    float: right;
-    display: inline-block;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .video-layer {
@@ -118,31 +129,58 @@ body.stream {
 }
 
 .video {
-    float: right;
-    max-height: 100%;
-    max-width: 100%;
+    max-height: 90vh;
+    max-width: 90vw;
     background-color: #000000;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 1.5rem;
 }
 
-
 .control-buttons-list {
-    float: right;
+    position: fixed;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
     width: 3.715rem;
     background-color: var(--control-buttons-bg-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 0.5rem 0;
+    margin: 0.5rem;
+    z-index: 100;
 }
 
 .control-button {
-    margin: .357rem .786rem;
+    margin: .357rem auto;
     padding: 0;
     width: 2.143rem;
     height: 2.143rem;
-    border: none;
-    opacity: 0.75;
+    border: 1px solid var(--button-border-color);
+    border-radius: 50%;
+    opacity: 0.8;
     background-color: var(--control-buttons-bg-color);
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .control-button:hover {
     opacity: 1;
+    box-shadow: var(--box-shadow-hover);
+    transform: translateY(-1px);
+}
+
+.control-button > svg {
+    fill: var(--svg-button-fill);
+    width: 1.2rem;
+    height: 1.2rem;
 }
 
 .control-wrapper > input[type=checkbox] {
@@ -150,29 +188,179 @@ body.stream {
 }
 
 .control-wrapper > label {
-    display: inline-block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
 }
 
-.control-button > svg {
-    fill: var(--svg-button-fill);
+.control-wrapper > input[type=checkbox].two-images:checked + label > .image-on {
+    display: block !important;
 }
 
-.control-wrapper > input[type=checkbox].two-images:checked + label > svg.image-on {
-    display: block;
+.control-wrapper > input[type=checkbox].two-images:not(:checked) + label > .image-on {
+    display: none !important;
 }
 
-.control-wrapper > input[type=checkbox].two-images:not(:checked) + label > svg.image-on {
-    display: none;
+.control-wrapper > input[type=checkbox].two-images:checked + label > .image-off {
+    display: none !important;
 }
 
-.control-wrapper > input[type=checkbox].two-images:checked + label > svg.image-off {
-    display: none;
+.control-wrapper > input[type=checkbox].two-images:not(:checked) + label > .image-off {
+    display: block !important;
 }
 
-.control-wrapper > input[type=checkbox].two-images:not(:checked) + label > svg.image-off {
-    display: block;
-}
-
-.control-wrapper > input[type=checkbox]:checked + label > svg {
+.control-wrapper > input[type=checkbox]:checked + label > .image {
     fill: var(--svg-checkbox-bg-color);
+}
+
+/* 新增现代化按钮样式 */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--button-border-color);
+    background-color: var(--header-bg-color);
+    color: var(--text-color);
+    font-size: var(--font-size);
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--box-shadow);
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+.btn:hover {
+    box-shadow: var(--box-shadow-hover);
+    transform: translateY(-1px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-primary {
+    background-color: var(--link-color);
+    color: white;
+    border-color: var(--link-color);
+}
+
+.btn-primary:hover {
+    background-color: #1c7ed6;
+    border-color: #1c7ed6;
+}
+
+.btn-danger {
+    background-color: var(--kill-button-hover-color);
+    color: white;
+    border-color: var(--kill-button-hover-color);
+}
+
+.btn-danger:hover {
+    background-color: #e03131;
+    border-color: #e03131;
+}
+
+.btn-success {
+    background-color: var(--svg-checkbox-bg-color);
+    color: white;
+    border-color: var(--svg-checkbox-bg-color);
+}
+
+.btn-success:hover {
+    background-color: #37b24d;
+    border-color: #37b24d;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.125rem;
+}
+
+/* 新增现代化输入框样式 */
+.input {
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--button-border-color);
+    background-color: var(--header-bg-color);
+    color: var(--text-color);
+    font-size: var(--font-size);
+    transition: var(--transition);
+    box-sizing: border-box;
+}
+
+.input:focus {
+    outline: none;
+    border-color: var(--link-color);
+    box-shadow: 0 0 0 3px rgba(34, 139, 230, 0.1);
+}
+
+.input:disabled {
+    background-color: var(--control-buttons-bg-color);
+    cursor: not-allowed;
+}
+
+/* 新增现代化选择框样式 */
+.select {
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--button-border-color);
+    background-color: var(--header-bg-color);
+    color: var(--text-color);
+    font-size: var(--font-size);
+    transition: var(--transition);
+    box-sizing: border-box;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 1rem;
+}
+
+.select:focus {
+    outline: none;
+    border-color: var(--link-color);
+    box-shadow: 0 0 0 3px rgba(34, 139, 230, 0.1);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .control-buttons-list {
+        width: 3rem;
+        margin: 0.25rem;
+        right: 0.5rem;
+    }
+    
+    .control-button {
+        margin: .25rem auto;
+        width: 1.75rem;
+        height: 1.75rem;
+    }
+    
+    .control-button > svg {
+        width: 1rem;
+        height: 1rem;
+    }
+    
+    body.stream {
+        height: auto;
+        min-height: 100vh;
+    }
+    
+    .video {
+        max-height: 80vh;
+        max-width: 95vw;
+    }
 }

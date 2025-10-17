@@ -18,6 +18,8 @@ export interface HostTrackerEvents {
 
 export class HostTracker extends ManagerClient<ParamsBase, HostTrackerEvents> {
     private static instance?: HostTracker;
+    private retryCount = 0;
+    private maxRetries = 3;
 
     public static start(): void {
         this.getInstance();
@@ -33,16 +35,53 @@ export class HostTracker extends ManagerClient<ParamsBase, HostTrackerEvents> {
     private trackers: Array<GoogDeviceTracker | ApplDeviceTracker> = [];
 
     constructor() {
-        super({ action: ACTION.LIST_HOSTS });
+        // 明确指定WebSocket服务器地址，支持多种连接方式
+        const hostname = window.location.hostname || 'localhost';
+        super({
+            action: ACTION.LIST_HOSTS,
+            hostname: hostname,
+            port: 8000, // WebSocket服务器端口
+            secure: window.location.protocol === 'https:',
+        });
+        console.log('[HostTracker] Connecting to WebSocket server at:', this.url.toString());
         this.openNewConnection();
         if (this.ws) {
             this.ws.binaryType = 'arraybuffer';
         }
     }
 
+    protected onSocketOpen(): void {
+        console.log('[HostTracker] WebSocket connection opened');
+        // 重置重试计数
+        this.retryCount = 0;
+    }
+
     protected onSocketClose(ev: CloseEvent): void {
-        console.log(TAG, 'WS closed');
-        this.emit('disconnected', ev);
+        console.log(TAG, 'WS closed with code:', ev.code, 'reason:', ev.reason);
+
+        // 增加重试机制
+        if (this.retryCount < this.maxRetries) {
+            this.retryCount++;
+            console.log(TAG, `Retrying connection (${this.retryCount}/${this.maxRetries})...`);
+
+            // 尝试不同的主机名
+            const hostnames = ['localhost', '127.0.0.1', window.location.hostname];
+            const currentHostname = this.params.hostname || window.location.hostname;
+            const currentIndex = hostnames.indexOf(currentHostname);
+            const nextIndex = (currentIndex + 1) % hostnames.length;
+            this.params.hostname = hostnames[nextIndex];
+
+            console.log(TAG, 'Trying hostname:', this.params.hostname);
+            this.url = this.buildWebSocketUrl();
+            console.log(TAG, 'New URL:', this.url.toString());
+
+            setTimeout(() => {
+                this.openNewConnection();
+            }, 1000 * this.retryCount); // 递增延迟
+        } else {
+            console.error(TAG, 'Max retries reached, giving up');
+            this.emit('disconnected', ev);
+        }
     }
 
     protected onSocketMessage(event: MessageEvent): void {
@@ -55,6 +94,7 @@ export class HostTracker extends ManagerClient<ParamsBase, HostTrackerEvents> {
             console.log(TAG, error.data);
             return;
         }
+        console.log(TAG, 'Received message:', event.data);
         switch (message.type) {
             case MessageType.ERROR: {
                 const msg = message as MessageError;
@@ -99,10 +139,6 @@ export class HostTracker extends ManagerClient<ParamsBase, HostTrackerEvents> {
             default:
                 console.warn(TAG, `Unsupported host type: "${hostItem.type}"`);
         }
-    }
-
-    protected onSocketOpen(): void {
-        // do nothing
     }
 
     public destroy(): void {

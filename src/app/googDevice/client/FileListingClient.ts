@@ -97,6 +97,7 @@ export class FileListingClient extends ManagerClient<ParamsFileListing, never> i
     private uploads: Map<string, Upload> = new Map();
     private tableBody: HTMLElement;
     private channels: Set<Multiplexer> = new Set();
+    private breadcrumbContainer: HTMLElement;
     constructor(params: ParamsFileListing) {
         super(params);
         this.parent = document.body;
@@ -110,17 +111,20 @@ export class FileListingClient extends ManagerClient<ParamsFileListing, never> i
         this.wrapperId = `wrapper_${this.tableBodyId}`;
         const fragment = html`<div id="${this.wrapperId}" class="listing">
             <h1 id="header">Contents ${this.path}</h1>
-            <div id="${parentDirLinkBox}" class="quick-link-box">
-                <a class="icon up" href="#!" ${FileListingClient.PROPERTY_NAME}=".."> [parent] </a>
-            </div>
-            <div id="${rootDirLinkBox}" class="quick-link-box">
-                <a class="icon dir" href="#!" ${FileListingClient.PROPERTY_NAME}="${rootPath}"> [root] </a>
-            </div>
-            <div id="${storageDirLinkBox}" class="quick-link-box">
-                <a class="icon dir" href="#!" ${FileListingClient.PROPERTY_NAME}="${storagePath}/"> [storage] </a>
-            </div>
-            <div id="${tempDirLinkBox}" class="quick-link-box">
-                <a class="icon dir" href="#!" ${FileListingClient.PROPERTY_NAME}="${tempPath}/"> [temp] </a>
+            <div class="breadcrumb" id="breadcrumb"></div>
+            <div class="quick-links-container">
+                <div id="${parentDirLinkBox}" class="quick-link-box">
+                    <a class="btn btn-sm" ${FileListingClient.PROPERTY_NAME}=".."> [parent] </a>
+                </div>
+                <div id="${rootDirLinkBox}" class="quick-link-box">
+                    <a class="btn btn-sm" ${FileListingClient.PROPERTY_NAME}="${rootPath}"> [root] </a>
+                </div>
+                <div id="${storageDirLinkBox}" class="quick-link-box">
+                    <a class="btn btn-sm" ${FileListingClient.PROPERTY_NAME}="${storagePath}/"> [storage] </a>
+                </div>
+                <div id="${tempDirLinkBox}" class="quick-link-box">
+                    <a class="btn btn-sm" ${FileListingClient.PROPERTY_NAME}="${tempPath}/"> [temp] </a>
+                </div>
             </div>
             <table>
                 <thead>
@@ -134,6 +138,7 @@ export class FileListingClient extends ManagerClient<ParamsFileListing, never> i
             </table>
         </div>`.content;
         this.tableBody = fragment.getElementById(this.tableBodyId) as HTMLElement;
+        this.breadcrumbContainer = fragment.getElementById('breadcrumb') as HTMLElement;
         const wrapper = fragment.getElementById(this.wrapperId);
         if (wrapper) {
             wrapper.addEventListener('click', (e) => {
@@ -348,6 +353,7 @@ export class FileListingClient extends ManagerClient<ParamsFileListing, never> i
             header.innerText = `Content ${this.path}`;
         }
         this.toggleQuickLinks(this.path);
+        this.updateBreadcrumb(this.path);
 
         // FIXME: should do over way around: load content on hash change
         const hash = location.hash.replace(/#!/, '');
@@ -356,6 +362,52 @@ export class FileListingClient extends ManagerClient<ParamsFileListing, never> i
             params.set('path', this.path);
             location.hash = `#!${params.toString()}`;
         }
+    }
+
+    protected updateBreadcrumb(path: string): void {
+        // 清空面包屑容器
+        this.breadcrumbContainer.innerHTML = '';
+
+        // 规范化路径，移除多余的斜杠
+        let normalizedPath = path.replace(/\/+/g, '/');
+        if (normalizedPath.endsWith('/') && normalizedPath.length > 1) {
+            normalizedPath = normalizedPath.slice(0, -1);
+        }
+
+        // 分割路径
+        const pathParts = normalizedPath.split('/').filter((part) => part !== '');
+
+        // 添加根路径链接
+        const rootItem = document.createElement('div');
+        rootItem.className = 'breadcrumb-item';
+        const rootLink = document.createElement('a');
+        rootLink.href = '#!';
+        rootLink.setAttribute(FileListingClient.PROPERTY_NAME, rootPath);
+        rootLink.textContent = 'root';
+        rootItem.appendChild(rootLink);
+        this.breadcrumbContainer.appendChild(rootItem);
+
+        // 添加路径中的每个部分
+        let currentPath = '';
+        pathParts.forEach((part, index) => {
+            currentPath += '/' + part;
+
+            const item = document.createElement('div');
+            item.className = 'breadcrumb-item';
+            if (index === pathParts.length - 1) {
+                // 最后一个元素，显示为当前路径
+                item.className += ' active';
+                item.textContent = part;
+            } else {
+                // 中间路径，添加链接
+                const link = document.createElement('a');
+                link.href = '#!';
+                link.setAttribute(FileListingClient.PROPERTY_NAME, currentPath + '/');
+                link.textContent = part;
+                item.appendChild(link);
+            }
+            this.breadcrumbContainer.appendChild(item);
+        });
     }
 
     protected toggleQuickLinks(path: string): void {
