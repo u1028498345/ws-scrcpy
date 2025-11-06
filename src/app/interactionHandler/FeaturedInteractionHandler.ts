@@ -39,8 +39,10 @@ export class FeaturedInteractionHandler extends InteractionHandler {
         const messages: ScrollControlMessage[] = [];
         const touchOnClient = InteractionHandler.buildTouchOnClient(event, screenInfo);
         if (touchOnClient) {
-            const hScroll = event.deltaX > 0 ? -1 : event.deltaX < -0 ? 1 : 0;
-            const vScroll = event.deltaY > 0 ? -1 : event.deltaY < -0 ? 1 : 0;
+            let hScroll = event.deltaX * 8;
+            let vScroll = event.deltaY * 8;
+            hScroll = Math.max(-9999, Math.min(9999, hScroll));
+            vScroll = Math.max(-9999, Math.min(9999, vScroll));
             const time = Date.now();
             if (
                 !this.lastScrollEvent ||

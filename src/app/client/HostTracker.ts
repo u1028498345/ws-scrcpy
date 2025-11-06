@@ -7,6 +7,7 @@ import { DeviceTracker as ApplDeviceTracker } from '../applDevice/client/DeviceT
 import { ParamsBase } from '../../types/ParamsBase';
 import { HostItem } from '../../types/Configuration';
 import { ChannelCode } from '../../common/ChannelCode';
+import { SERVICE_HOST, SERVICE_PORT } from '../../common/Constants';
 
 const TAG = '[HostTracker]';
 
@@ -36,11 +37,10 @@ export class HostTracker extends ManagerClient<ParamsBase, HostTrackerEvents> {
 
     constructor() {
         // 明确指定WebSocket服务器地址，支持多种连接方式
-        const hostname = window.location.hostname || 'localhost';
         super({
             action: ACTION.LIST_HOSTS,
-            hostname: hostname,
-            port: 8000, // WebSocket服务器端口
+            hostname: SERVICE_HOST,
+            port: SERVICE_PORT, // WebSocket服务器端口
             secure: window.location.protocol === 'https:',
         });
         console.log('[HostTracker] Connecting to WebSocket server at:', this.url.toString());
@@ -65,7 +65,7 @@ export class HostTracker extends ManagerClient<ParamsBase, HostTrackerEvents> {
             console.log(TAG, `Retrying connection (${this.retryCount}/${this.maxRetries})...`);
 
             // 尝试不同的主机名
-            const hostnames = ['localhost', '127.0.0.1', window.location.hostname];
+            const hostnames = ['', 'localhost', '127.0.0.1', window.location.hostname];
             const currentHostname = this.params.hostname || window.location.hostname;
             const currentIndex = hostnames.indexOf(currentHostname);
             const nextIndex = (currentIndex + 1) % hostnames.length;
@@ -94,7 +94,7 @@ export class HostTracker extends ManagerClient<ParamsBase, HostTrackerEvents> {
             console.log(TAG, error.data);
             return;
         }
-        console.log(TAG, 'Received message:', event.data);
+        console.log(TAG, 'Received message:', message);
         switch (message.type) {
             case MessageType.ERROR: {
                 const msg = message as MessageError;
@@ -107,9 +107,11 @@ export class HostTracker extends ManagerClient<ParamsBase, HostTrackerEvents> {
                 // this.emit('hosts', msg.data);
                 if (msg.data.local) {
                     msg.data.local.forEach(({ type }) => {
+                        console.log(type);
                         const secure = location.protocol === 'https:';
-                        const port = location.port ? parseInt(location.port, 10) : secure ? 443 : 80;
-                        const { hostname, pathname } = location;
+                        const port = SERVICE_PORT;
+                        const hostname = SERVICE_HOST;
+                        const pathname = location.pathname;
                         if (type !== 'android' && type !== 'ios') {
                             console.warn(TAG, `Unsupported host type: "${type}"`);
                             return;

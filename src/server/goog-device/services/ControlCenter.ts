@@ -157,12 +157,20 @@ export class ControlCenter extends BaseControlCenter<GoogDeviceDescriptor> imple
 
     public async runCommand(command: ControlCenterCommand): Promise<void> {
         const udid = command.getUdid();
+        const type = command.getType();
+
+        // 处理删除设备命令
+        if (type === ControlCenterCommand.REMOVE_DEVICE) {
+            this.removeDevice(udid);
+            return;
+        }
+
         const device = this.getDevice(udid);
         if (!device) {
             console.error(`Device with udid:"${udid}" not found`);
             return;
         }
-        const type = command.getType();
+
         switch (type) {
             case ControlCenterCommand.KILL_SERVER:
                 await device.killServer(command.getPid());
@@ -176,5 +184,36 @@ export class ControlCenter extends BaseControlCenter<GoogDeviceDescriptor> imple
             default:
                 throw new Error(`Unsupported command: "${type}"`);
         }
+    }
+
+    // 添加移除设备的方法
+    private removeDevice(udid: string): void {
+        // 从设备映射和描述符映射中移除设备
+        const device = this.deviceMap.get(udid);
+        if (device) {
+            // 移除事件监听器
+            device.off('update', this.onDeviceUpdate);
+            this.deviceMap.delete(udid);
+        }
+
+        this.descriptors.delete(udid);
+
+        // 通知所有监听器设备已被移除
+        // 我们发送一个状态为"removed"的设备更新，这样前端可以移除它
+        const removedDescriptor: GoogDeviceDescriptor = {
+            udid,
+            state: 'removed',
+            interfaces: [],
+            pid: -1,
+            'wifi.interface': '',
+            'ro.build.version.release': '',
+            'ro.build.version.sdk': '',
+            'ro.product.manufacturer': '',
+            'ro.product.model': '',
+            'ro.product.cpu.abi': '',
+            'last.update.timestamp': Date.now(),
+        };
+
+        this.emit('device', removedDescriptor);
     }
 }

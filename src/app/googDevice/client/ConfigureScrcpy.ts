@@ -475,7 +475,7 @@ export class ConfigureScrcpy extends BaseClient<ParamsStreamScrcpy, ConfigureScr
         this.appendBasicInput(controls, {
             label: 'Max FPS',
             id: 'maxFps',
-            range: { min: 1, max: 60, step: 1 },
+            range: { min: 1, max: 120, step: 1 },
         });
         this.appendBasicInput(controls, { label: 'I-Frame interval', id: 'iFrameInterval' });
         const fitLabel = document.createElement('label');

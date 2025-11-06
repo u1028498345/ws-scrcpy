@@ -21,14 +21,14 @@ export class MsePlayer extends BasePlayer {
     public static readonly playerCodeName = 'mse';
     public static readonly preferredVideoSettings: VideoSettings = new VideoSettings({
         lockedVideoOrientation: -1,
-        bitrate: 8000000,
-        maxFps: 60,
+        bitrate: 10000,
+        maxFps: 120,
         iFrameInterval: 10,
         bounds: new Size(720, 720),
         sendFrameMeta: false,
     });
     private static DEFAULT_FRAMES_PER_FRAGMENT = 1;
-    private static DEFAULT_FRAMES_PER_SECOND = 60;
+    private static DEFAULT_FRAMES_PER_SECOND = 120;
 
     public static createElement(id?: string): HTMLVideoElement {
         const tag = document.createElement('video') as HTMLVideoElement;

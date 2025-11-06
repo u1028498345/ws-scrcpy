@@ -140,6 +140,302 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
         }
     };
 
+    // 添加编辑备注的事件处理函数
+    onEditRemarkClick = (event: Event): void => {
+        const button = event.currentTarget as HTMLButtonElement;
+        const udid = button.getAttribute(Attribute.UDID);
+        if (!udid) {
+            return;
+        }
+
+        // 获取当前设备
+        const device = this.descriptors.find((d) => d.udid === udid);
+        if (!device) {
+            return;
+        }
+
+        // 创建模态对话框
+        this.createRemarkModal(device);
+    };
+
+    // 创建备注编辑模态对话框
+    private createRemarkModal(device: GoogDeviceDescriptor): void {
+        // 移除已存在的模态框
+        const existingModal = document.getElementById('remark-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        const currentRemark = device.remark || '';
+        const modal = html`
+            <div id="remark-modal" class="remark-modal">
+                <div class="remark-modal-content">
+                    <div class="remark-modal-header">
+                        <h3>编辑设备备注</h3>
+                        <button class="remark-modal-close">&times;</button>
+                    </div>
+                    <div class="remark-modal-body">
+                        <label for="remark-input">设备UDID: ${device.udid}</label>
+                        <input
+                            type="text"
+                            id="remark-input"
+                            class="remark-input"
+                            value="${currentRemark}"
+                            placeholder="请输入设备备注"
+                        />
+                    </div>
+                    <div class="remark-modal-footer">
+                        <button class="remark-modal-btn cancel-btn">取消</button>
+                        <button class="remark-modal-btn save-btn">保存</button>
+                    </div>
+                </div>
+            </div>
+        `.content;
+
+        // 添加到页面
+        document.body.appendChild(modal);
+
+        // 获取元素
+        const modalElement = document.getElementById('remark-modal');
+        const closeBtn = modalElement?.querySelector('.remark-modal-close');
+        const cancelBtn = modalElement?.querySelector('.cancel-btn');
+        const saveBtn = modalElement?.querySelector('.save-btn');
+        const inputElement = modalElement?.querySelector('.remark-input') as HTMLInputElement;
+
+        // 关闭模态框函数
+        const closeModal = () => {
+            if (modalElement) {
+                modalElement.remove();
+            }
+        };
+
+        // 保存备注函数
+        const saveRemark = () => {
+            const newRemark = inputElement.value.trim();
+
+            // 如果输入的内容与当前备注相同，则不执行任何操作
+            if (newRemark === (device.remark || '')) {
+                closeModal();
+                return;
+            }
+
+            // 发送更新备注命令到服务端
+            const data: Message = {
+                id: this.getNextId(),
+                type: 'update_remark',
+                data: {
+                    udid: device.udid,
+                    remark: newRemark,
+                },
+            };
+
+            if (this.ws && this.ws.readyState === this.ws.OPEN) {
+                this.ws.send(JSON.stringify(data));
+            }
+
+            // 更新本地设备信息
+            device.remark = newRemark;
+
+            // 更新界面上显示的备注
+            const deviceElements = document.querySelectorAll(`[data-udid="${device.udid}"]`);
+            deviceElements.forEach((element) => {
+                const serialDiv = element.closest('.device')?.querySelector('.device-serial');
+                if (serialDiv) {
+                    serialDiv.textContent = newRemark || device.udid;
+                }
+            });
+
+            closeModal();
+        };
+
+        // 绑定事件
+        closeBtn?.addEventListener('click', closeModal);
+        cancelBtn?.addEventListener('click', closeModal);
+        saveBtn?.addEventListener('click', saveRemark);
+
+        // 回车键保存
+        inputElement?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                saveRemark();
+            }
+        });
+
+        // 点击模态框外部关闭
+        modalElement?.addEventListener('click', (e) => {
+            if (e.target === modalElement) {
+                closeModal();
+            }
+        });
+
+        // 聚焦到输入框
+        inputElement?.focus();
+    }
+
+    // 添加清除备注的事件处理函数
+    onClearRemarkClick = (event: Event): void => {
+        const button = event.currentTarget as HTMLButtonElement;
+        const udid = button.getAttribute(Attribute.UDID);
+        if (!udid) {
+            return;
+        }
+
+        // 获取当前设备
+        const device = this.descriptors.find((d) => d.udid === udid);
+        if (!device) {
+            return;
+        }
+
+        // 创建确认对话框
+        this.createConfirmModal({
+            title: '清除备注',
+            message: `确定要清除设备 ${device.udid} 的备注吗？`,
+            confirmText: '清除',
+            cancelText: '取消',
+            onConfirm: () => {
+                // 发送清除备注命令到服务端
+                const data: Message = {
+                    id: this.getNextId(),
+                    type: 'update_remark',
+                    data: {
+                        udid: udid,
+                        remark: '',
+                    },
+                };
+
+                if (this.ws && this.ws.readyState === this.ws.OPEN) {
+                    this.ws.send(JSON.stringify(data));
+                }
+
+                // 更新本地设备信息
+                device.remark = '';
+
+                // 更新界面上显示的备注
+                const deviceElement = button.closest('.device');
+                if (deviceElement) {
+                    const serialDiv = deviceElement.querySelector('.device-serial');
+                    if (serialDiv) {
+                        serialDiv.textContent = udid;
+                    }
+                }
+            },
+        });
+    };
+
+    // 添加删除设备的事件处理函数
+    onDeleteDeviceClick = (event: Event): void => {
+        const button = event.currentTarget as HTMLButtonElement;
+        const udid = button.getAttribute(Attribute.UDID);
+        if (!udid) {
+            return;
+        }
+
+        // 获取当前设备
+        const device = this.descriptors.find((d) => d.udid === udid);
+        if (!device) {
+            return;
+        }
+
+        // 创建确认对话框
+        this.createConfirmModal({
+            title: '删除设备',
+            message: `确定要删除设备 ${udid} 吗？此操作将从列表中永久移除此设备。`,
+            confirmText: '删除',
+            cancelText: '取消',
+            onConfirm: () => {
+                // 发送删除设备命令到服务端
+                const data: Message = {
+                    id: this.getNextId(),
+                    type: ControlCenterCommand.REMOVE_DEVICE,
+                    data: {
+                        udid: udid,
+                    },
+                };
+
+                if (this.ws && this.ws.readyState === this.ws.OPEN) {
+                    this.ws.send(JSON.stringify(data));
+                }
+
+                // 从前端界面中移除设备
+                const deviceElement = button.closest('.device');
+                if (deviceElement) {
+                    deviceElement.remove();
+                }
+
+                // 从内部描述符数组中移除设备
+                const index = this.descriptors.findIndex((descriptor) => descriptor.udid === udid);
+                if (index !== -1) {
+                    this.descriptors.splice(index, 1);
+                }
+            },
+        });
+    };
+
+    // 创建通用确认模态对话框
+    private createConfirmModal(options: {
+        title: string;
+        message: string;
+        confirmText: string;
+        cancelText: string;
+        onConfirm: () => void;
+    }): void {
+        // 移除已存在的模态框
+        const existingModal = document.getElementById('confirm-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        const { title, message, confirmText, cancelText, onConfirm } = options;
+
+        const modal = html`
+            <div id="confirm-modal" class="remark-modal">
+                <div class="remark-modal-content">
+                    <div class="remark-modal-header">
+                        <h3>${title}</h3>
+                        <button class="remark-modal-close">&times;</button>
+                    </div>
+                    <div class="remark-modal-body">
+                        <p>${message}</p>
+                    </div>
+                    <div class="remark-modal-footer">
+                        <button class="remark-modal-btn cancel-btn">${cancelText}</button>
+                        <button class="remark-modal-btn save-btn confirm-btn">${confirmText}</button>
+                    </div>
+                </div>
+            </div>
+        `.content;
+
+        // 添加到页面
+        document.body.appendChild(modal);
+
+        // 获取元素
+        const modalElement = document.getElementById('confirm-modal');
+        const closeBtn = modalElement?.querySelector('.remark-modal-close');
+        const cancelBtn = modalElement?.querySelector('.cancel-btn');
+        const confirmBtn = modalElement?.querySelector('.confirm-btn');
+
+        // 关闭模态框函数
+        const closeModal = () => {
+            if (modalElement) {
+                modalElement.remove();
+            }
+        };
+
+        // 绑定事件
+        closeBtn?.addEventListener('click', closeModal);
+        cancelBtn?.addEventListener('click', closeModal);
+        confirmBtn?.addEventListener('click', () => {
+            onConfirm();
+            closeModal();
+        });
+
+        // 点击模态框外部关闭
+        modalElement?.addEventListener('click', (e) => {
+            if (e.target === modalElement) {
+                closeModal();
+            }
+        });
+    }
+
     private static getLocalStorageKey(udid: string): string {
         return `device_list::${udid}::interface`;
     }
@@ -171,22 +467,51 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
     }
 
     protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
+        // 如果设备状态为"removed"，则不显示
+        if (device.state === 'removed') {
+            return;
+        }
+
         let selectedInterfaceUrl = '';
         let selectedInterfaceName = '';
         const blockClass = 'desc-block';
         const fullName = `${this.id}_${Util.escapeUdid(device.udid)}`;
-        const isActive = device.state === DeviceState.DEVICE;
+        const isActive = device.state === DeviceState.DEVICE || device.state === DeviceState.CONNECTED;
         let hasPid = false;
         const servicesId = `device_services_${fullName}`;
-        const row = html`<div class="device ${isActive ? 'active' : 'not-active'}">
+        const row = html`<div class="device ${isActive ? 'active' : 'not-active'}" data-udid="${device.udid}">
             <div class="device-header">
                 <div class="device-name">${device['ro.product.manufacturer']} ${device['ro.product.model']}</div>
-                <div class="device-serial">${device.udid}</div>
+                <div class="device-serial-container">
+                    <div class="device-serial">${device.remark || device.udid}</div>
+                    <div class="device-remark-actions">
+                        <button class="remark-action-btn edit-remark" title="编辑备注">
+                            <svg width="14" height="14" viewBox="0 0 24 24">
+                                <path
+                                    d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                                ></path>
+                            </svg>
+                        </button>
+                        <button class="remark-action-btn clear-remark" title="清除备注">
+                            <svg width="14" height="14" viewBox="0 0 24 24">
+                                <path
+                                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                                ></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
                 <div class="device-version">
                     <div class="release-version">${device['ro.build.version.release']}</div>
                     <div class="sdk-version">${device['ro.build.version.sdk']}</div>
                 </div>
                 <div class="device-state" title="State: ${device.state}"></div>
+                <!-- 添加删除按钮 -->
+                <button class="action-button delete-device-button" title="删除设备">
+                    <svg width="14" height="14" viewBox="0 0 24 24">
+                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path>
+                    </svg>
+                </button>
             </div>
             <div id="${servicesId}" class="services"></div>
         </div>`.content;
@@ -195,6 +520,26 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
             return;
         }
 
+        // 为删除按钮添加事件监听器
+        const deleteButton = row.querySelector('.delete-device-button');
+        if (deleteButton) {
+            deleteButton.setAttribute(Attribute.UDID, device.udid);
+            deleteButton.addEventListener('click', this.onDeleteDeviceClick);
+        }
+
+        // 为编辑备注按钮添加事件监听器
+        const editRemarkButton = row.querySelector('.edit-remark');
+        if (editRemarkButton) {
+            editRemarkButton.setAttribute(Attribute.UDID, device.udid);
+            editRemarkButton.addEventListener('click', this.onEditRemarkClick);
+        }
+
+        // 为清除备注按钮添加事件监听器
+        const clearRemarkButton = row.querySelector('.clear-remark');
+        if (clearRemarkButton) {
+            clearRemarkButton.setAttribute(Attribute.UDID, device.udid);
+            clearRemarkButton.addEventListener('click', this.onClearRemarkClick);
+        }
         DeviceTracker.tools.forEach((tool) => {
             const entry = tool.createEntryForDeviceList(device, blockClass, this.params);
             if (entry) {
@@ -289,6 +634,8 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
                         }
                     } else if (device['wifi.interface'] === value.name) {
                         optionElement.selected = true;
+                        selectedInterfaceUrl = url;
+                        selectedInterfaceName = value.name;
                     }
                 });
                 /// #else
@@ -296,7 +643,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
                 selectedInterfaceName = proxyInterfaceName;
                 td.classList.add('hidden');
                 /// #endif
-                if (isActive) {
+                if (device.state === DeviceState.DEVICE) {
                     const adbProxyOption = DeviceTracker.createInterfaceOption(proxyInterfaceName, proxyInterfaceUrl);
                     if (lastSelected === proxyInterfaceName || !selectedInterfaceName) {
                         adbProxyOption.selected = true;
@@ -334,7 +681,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
         }
 
         tbody.appendChild(row);
-        if (DeviceTracker.CREATE_DIRECT_LINKS && hasPid && selectedInterfaceUrl) {
+        if (DeviceTracker.CREATE_DIRECT_LINKS && selectedInterfaceUrl) {
             this.updateLink({
                 url: selectedInterfaceUrl,
                 name: selectedInterfaceName,

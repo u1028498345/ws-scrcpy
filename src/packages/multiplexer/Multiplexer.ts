@@ -252,6 +252,7 @@ export class Multiplexer extends TypedEmitter<MultiplexerEvents> implements WebS
     }
 
     public send(data: string | ArrayBufferLike | Blob | ArrayBufferView): void {
+        console.log(MessageType.RawBinaryData, this._id, data);
         if (this.ws instanceof Multiplexer) {
             if (typeof data === 'string') {
                 data = Message.createBuffer(MessageType.RawStringData, this._id, Buffer.from(data));

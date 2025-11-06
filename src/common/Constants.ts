@@ -31,3 +31,7 @@ const ARGUMENTS = [
 export const SERVER_PROCESS_NAME = 'app_process';
 
 export const ARGS_STRING = `/ ${SERVER_PACKAGE} ${ARGUMENTS.join(' ')} 2>&1 > /dev/null`;
+
+// 后端服务端地址
+export const SERVICE_HOST = '10.31.0.118';
+export const SERVICE_PORT = 8000;

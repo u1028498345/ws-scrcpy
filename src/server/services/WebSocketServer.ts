@@ -38,6 +38,7 @@ export class WebSocketServer implements Service {
     public attachToServer(item: ServerAndPort): WSServer {
         const { server, port } = item;
         const TAG = `WebSocket Server {tcp:${port}}`;
+        console.log(server, port);
         const wss = new WSServer({ server });
         wss.on('connection', async (ws: WS, request) => {
             if (!request.url) {
