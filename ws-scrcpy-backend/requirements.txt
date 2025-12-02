@@ -1,0 +1,8 @@
+fastapi>=0.68.0
+uvicorn>=0.15.0
+websockets>=9.0
+pydantic>=1.8.0
+pydantic-settings>=2.0.0
+sqlalchemy>=2.0.0
+aiomysql>=0.1.1
+aiosqlite>=0.17.0
