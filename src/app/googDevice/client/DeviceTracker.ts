@@ -483,7 +483,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
             <div class="device-header">
                 <div class="device-name">${device['ro.product.manufacturer']} ${device['ro.product.model']}</div>
                 <div class="device-serial-container">
-                    <div class="device-serial">${device.remark || device.udid}</div>
+                    <div class="device-remark">${device.remark || device.udid}</div>
                     <div class="device-remark-actions">
                         <button class="remark-action-btn edit-remark" title="编辑备注">
                             <svg width="14" height="14" viewBox="0 0 24 24">

@@ -109,6 +109,12 @@ body.list #device_list_menu {
     border-radius: var(--border-radius);
 }
 
+#devices .device-remark {
+    font-weight: bold;
+    color: red;
+    font-size: 1.25rem;
+}
+
 /* 设备备注容器 */
 .device-serial-container {
     display: flex;
