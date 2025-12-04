@@ -239,7 +239,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
             // 更新界面上显示的备注
             const deviceElements = document.querySelectorAll(`[data-udid="${device.udid}"]`);
             deviceElements.forEach((element) => {
-                const serialDiv = element.closest('.device')?.querySelector('.device-serial');
+                const serialDiv = element.closest('.device')?.querySelector('.device-remark');
                 if (serialDiv) {
                     serialDiv.textContent = newRemark || device.udid;
                 }
@@ -312,7 +312,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
                 // 更新界面上显示的备注
                 const deviceElement = button.closest('.device');
                 if (deviceElement) {
-                    const serialDiv = deviceElement.querySelector('.device-serial');
+                    const serialDiv = deviceElement.querySelector('.device-remark');
                     if (serialDiv) {
                         serialDiv.textContent = udid;
                     }

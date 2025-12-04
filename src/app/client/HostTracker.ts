@@ -7,7 +7,6 @@ import { DeviceTracker as ApplDeviceTracker } from '../applDevice/client/DeviceT
 import { ParamsBase } from '../../types/ParamsBase';
 import { HostItem } from '../../types/Configuration';
 import { ChannelCode } from '../../common/ChannelCode';
-import { SERVICE_HOST, SERVICE_PORT } from '../../common/Constants';
 
 const TAG = '[HostTracker]';
 
@@ -37,10 +36,12 @@ export class HostTracker extends ManagerClient<ParamsBase, HostTrackerEvents> {
 
     constructor() {
         // 明确指定WebSocket服务器地址，支持多种连接方式
+        const hostname = window.location.hostname || 'localhost';
+        const port = parseInt(window.location.port) || 8000;
         super({
             action: ACTION.LIST_HOSTS,
-            hostname: SERVICE_HOST,
-            port: SERVICE_PORT, // WebSocket服务器端口
+            hostname: hostname,
+            port: port, // WebSocket服务器端口
             secure: window.location.protocol === 'https:',
         });
         console.log('[HostTracker] Connecting to WebSocket server at:', this.url.toString());
@@ -107,16 +108,14 @@ export class HostTracker extends ManagerClient<ParamsBase, HostTrackerEvents> {
                 // this.emit('hosts', msg.data);
                 if (msg.data.local) {
                     msg.data.local.forEach(({ type }) => {
-                        console.log(type);
                         const secure = location.protocol === 'https:';
-                        const port = SERVICE_PORT;
-                        const hostname = SERVICE_HOST;
-                        const pathname = location.pathname;
+                        const port = location.port ? parseInt(location.port, 10) : secure ? 443 : 80;
+                        const { hostname, pathname } = location;
                         if (type !== 'android' && type !== 'ios') {
                             console.warn(TAG, `Unsupported host type: "${type}"`);
                             return;
                         }
-                        const hostItem: HostItem = { useProxy: false, secure, port, hostname, pathname, type };
+                        const hostItem: HostItem = { useProxy: true, secure, port, hostname, pathname, type };
                         this.startTracker(hostItem);
                     });
                 }
