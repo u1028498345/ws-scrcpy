@@ -7,7 +7,7 @@
     --controls-bg-color: rgba(255, 255, 255, 0.9);
     --control-buttons-bg-color: #f1f3f5;
     --text-color: #212529;
-    --text-color-light: #6c757d;
+    --text-color-light: #000;
     --link-color: #228be6;
     --link-color-light: #74c0fc;
     --link-color_visited: #845ef7;
@@ -129,7 +129,8 @@ body.stream {
 }
 
 .video {
-    max-height: 90vh;
+    position: relative;
+    max-height: 100vh;
     max-width: 90vw;
     background-color: #000000;
     border-radius: var(--border-radius);
@@ -139,6 +140,7 @@ body.stream {
     align-items: center;
     color: white;
     font-size: 1.5rem;
+    overflow: hidden;
 }
 
 .control-buttons-list {
@@ -360,7 +362,7 @@ body.stream {
     }
     
     .video {
-        max-height: 80vh;
+        max-height: 100vh;
         max-width: 95vw;
     }
 }

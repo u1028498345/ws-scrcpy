@@ -366,6 +366,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
                 if (index !== -1) {
                     this.descriptors.splice(index, 1);
                 }
+                this.buildDeviceTable();
             },
         });
     };
@@ -472,16 +473,72 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
             return;
         }
 
+        const title = device.remark || `${device['ro.product.manufacturer']} ${device['ro.product.model']}`;
+        const description = `${device['ro.product.model']} · ${device.udid}`;
+        this.getGroupContainer(tbody, device).appendChild(this.createDeviceTreeNode(device, title, description));
+    }
+
+    protected getDefaultOperationLink(device: GoogDeviceDescriptor): { title: string; url: string } | undefined {
+        if (device.state !== DeviceState.DEVICE && device.state !== DeviceState.CONNECTED) {
+            return;
+        }
+        const players = StreamClientScrcpy.getPlayers();
+        const playerClass = players.find((player) => player.playerCodeName === 'mse') || players[0];
+        if (!playerClass) {
+            return;
+        }
+        const fullName = `${this.id}_${Util.escapeUdid(device.udid)}`;
+        const localStorageKey = DeviceTracker.getLocalStorageKey(fullName);
+        const lastSelected = localStorage && localStorage.getItem(localStorageKey);
+        const preferredInterface =
+            device.interfaces.find((item) => item.name === lastSelected) ||
+            device.interfaces.find((item) => item.name === device['wifi.interface']) ||
+            device.interfaces[0];
+        const ws = preferredInterface
+            ? DeviceTracker.createUrl({
+                  ...this.params,
+                  secure: false,
+                  hostname: preferredInterface.ipv4,
+                  port: SERVER_PORT,
+              }).toString()
+            : DeviceTracker.createUrl(this.params, device.udid).toString();
+        const link = DeviceTracker.buildLink(
+            {
+                action: ACTION.STREAM_SCRCPY,
+                udid: device.udid,
+                player: playerClass.playerCodeName,
+                ws,
+            },
+            '设备投射',
+            this.params,
+        );
+        return {
+            title: '设备投射',
+            url: link.href,
+        };
+    }
+
+    protected buildDeviceDetail(parent: HTMLElement, device: GoogDeviceDescriptor): void {
+        if (device.state === 'removed') {
+            return;
+        }
+
         let selectedInterfaceUrl = '';
         let selectedInterfaceName = '';
-        const blockClass = 'desc-block';
+        const blockClass = 'detail-action';
         const fullName = `${this.id}_${Util.escapeUdid(device.udid)}`;
         const isActive = device.state === DeviceState.DEVICE || device.state === DeviceState.CONNECTED;
         let hasPid = false;
-        const servicesId = `device_services_${fullName}`;
-        const row = html`<div class="device ${isActive ? 'active' : 'not-active'}" data-udid="${device.udid}">
+        // const servicesId = `device_detail_actions_${fullName}`;
+        const groupId = `device_group_detail_${fullName}`;
+        const row = html`<div
+            class="device-detail-card ${isActive ? 'active' : 'not-active'}"
+            data-udid="${device.udid}"
+        >
             <div class="device-header">
-                <div class="device-name">${device['ro.product.manufacturer']} ${device['ro.product.model']}</div>
+                <button class="operation-close-btn" type="button" title="关闭投射" aria-label="关闭投射">×</button>
+                <div class="device-name">${device.remark || device['ro.product.model']}</div>
+                <div class="device-model">${device['ro.product.manufacturer']} ${device['ro.product.model']}</div>
                 <div class="device-serial-container">
                     <div class="device-remark">${device.remark || device.udid}</div>
                     <div class="device-remark-actions">
@@ -503,22 +560,31 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
                 </div>
                 <div class="device-version">
                     <div class="release-version">${device['ro.build.version.release']}</div>
-                    <div class="sdk-version">${device['ro.build.version.sdk']}</div>
                 </div>
                 <div class="device-state" title="State: ${device.state}"></div>
-                <!-- 添加删除按钮 -->
+                <div id="${groupId}" class="device-group-control"></div>
                 <button class="action-button delete-device-button" title="删除设备">
                     <svg width="14" height="14" viewBox="0 0 24 24">
                         <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path>
                     </svg>
                 </button>
             </div>
-            <div id="${servicesId}" class="services"></div>
+            <div class="device-detail-fields">
+                <div><span>类型</span><strong>Android</strong></div>
+                <div><span>状态</span><strong>${device.state}</strong></div>
+                <div>
+                    <span>版本</span
+                    ><strong>${device['ro.build.version.release']} / SDK ${device['ro.build.version.sdk']}</strong>
+                </div>
+                <div><span>UDID</span><strong>${device.udid}</strong></div>
+            </div>
         </div>`.content;
-        const services = row.getElementById(servicesId);
-        if (!services) {
-            return;
-        }
+        // const services = row.getElementById(servicesId);
+        // if (!services) {
+        //     return;
+        // }
+        const groupControl = row.getElementById(groupId);
+        groupControl?.appendChild(this.createGroupSelect(device));
 
         // 为删除按钮添加事件监听器
         const deleteButton = row.querySelector('.delete-device-button');
@@ -540,21 +606,21 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
             clearRemarkButton.setAttribute(Attribute.UDID, device.udid);
             clearRemarkButton.addEventListener('click', this.onClearRemarkClick);
         }
-        DeviceTracker.tools.forEach((tool) => {
-            const entry = tool.createEntryForDeviceList(device, blockClass, this.params);
-            if (entry) {
-                if (Array.isArray(entry)) {
-                    entry.forEach((item) => {
-                        item && services.appendChild(item);
-                    });
-                } else {
-                    services.appendChild(entry);
-                }
-            }
-        });
+        // DeviceTracker.tools.forEach((tool) => {
+        //     const entry = tool.createEntryForDeviceList(device, blockClass, this.params);
+        //     if (entry) {
+        //         if (Array.isArray(entry)) {
+        //             entry.forEach((item) => {
+        //                 item && services.appendChild(item);
+        //             });
+        //         } else {
+        //             services.appendChild(entry);
+        //         }
+        //     }
+        // });
 
-        const streamEntry = StreamClientScrcpy.createEntryForDeviceList(device, blockClass, fullName, this.params);
-        streamEntry && services.appendChild(streamEntry);
+        // const streamEntry = StreamClientScrcpy.createEntryForDeviceList(device, blockClass, fullName, this.params);
+        // streamEntry && services.appendChild(streamEntry);
 
         DESC_COLUMNS.forEach((item) => {
             const { title } = item;
@@ -567,7 +633,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
             }
             const td = document.createElement('div');
             td.classList.add(DeviceTracker.titleToClassName(title), blockClass);
-            services.appendChild(td);
+            // services.appendChild(td);
             if (fieldName === 'pid') {
                 hasPid = value !== '-1';
                 const actionButton = document.createElement('button');
@@ -676,11 +742,11 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
                 playerTd.setAttribute('name', encodeURIComponent(name));
                 playerTd.setAttribute(DeviceTracker.AttributePlayerFullName, encodeURIComponent(playerFullName));
                 playerTd.setAttribute(DeviceTracker.AttributePlayerCodeName, encodeURIComponent(playerCodeName));
-                services.appendChild(playerTd);
+                // services.appendChild(playerTd);
             });
         }
 
-        tbody.appendChild(row);
+        parent.appendChild(row);
         if (DeviceTracker.CREATE_DIRECT_LINKS && selectedInterfaceUrl) {
             this.updateLink({
                 url: selectedInterfaceUrl,

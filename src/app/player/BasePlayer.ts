@@ -85,6 +85,9 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
     public readonly resizeVideoToBounds: boolean = false;
     protected videoHeight = -1;
     protected videoWidth = -1;
+    private parentResizeObserver?: ResizeObserver;
+    private parentResizeFallback?: () => void;
+    private displaySize?: Size;
 
     public static storageKeyPrefix = 'BaseDecoder';
     public static playerFullName = 'BasePlayer';
@@ -317,6 +320,7 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
 
     public stop(): void {
         this.state = BasePlayer.STATE.STOPPED;
+        this.unobserveParentResize();
     }
 
     public getState(): number {
@@ -344,9 +348,12 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
     }
 
     public setParent(parent: HTMLElement): void {
+        this.unobserveParentResize();
         this.parentElement = parent;
         parent.appendChild(this.tag);
         parent.appendChild(this.touchableCanvas);
+        this.observeParentResize(parent);
+        this.updateResponsiveSize();
     }
 
     protected needScreenInfoBeforePlay(): boolean {
@@ -383,14 +390,16 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
         this.receivedFirstFrame = false;
         this.screenInfo = screenInfo;
         const { width, height } = screenInfo.videoSize;
+        this.videoWidth = width;
+        this.videoHeight = height;
         this.touchableCanvas.width = width;
         this.touchableCanvas.height = height;
         if (this.parentElement) {
+            this.parentElement.style.aspectRatio = `${width} / ${height}`;
             this.parentElement.style.height = `${height}px`;
-            this.parentElement.style.width = `${width}px`;
+            this.parentElement.style.removeProperty('width');
         }
-        const size = new Size(width, height);
-        this.emit('video-view-resize', size);
+        this.updateResponsiveSize();
     }
 
     public getName(): string {
@@ -540,6 +549,62 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
 
     public setBounds(bounds: Size): void {
         this.bounds = Size.copy(bounds);
+    }
+
+    private observeParentResize(parent: HTMLElement): void {
+        if (typeof ResizeObserver !== 'undefined') {
+            this.parentResizeObserver = new ResizeObserver(() => {
+                this.updateResponsiveSize();
+            });
+            this.parentResizeObserver.observe(parent);
+            return;
+        }
+        this.parentResizeFallback = (): void => {
+            this.updateResponsiveSize();
+        };
+        window.addEventListener('resize', this.parentResizeFallback);
+    }
+
+    private unobserveParentResize(): void {
+        this.parentResizeObserver?.disconnect();
+        this.parentResizeObserver = undefined;
+        if (this.parentResizeFallback) {
+            window.removeEventListener('resize', this.parentResizeFallback);
+            this.parentResizeFallback = undefined;
+        }
+    }
+
+    protected updateResponsiveSize(): void {
+        if (!this.parentElement || this.videoWidth <= 0 || this.videoHeight <= 0) {
+            return;
+        }
+
+        const parentWidth = this.parentElement.clientWidth || this.videoWidth;
+        const parentHeight = this.parentElement.clientHeight || this.videoHeight;
+        if (parentWidth <= 0 || parentHeight <= 0) {
+            return;
+        }
+
+        const scale = Math.min(parentWidth / this.videoWidth, parentHeight / this.videoHeight);
+        const width = Math.max(1, Math.round(this.videoWidth * scale));
+        const height = Math.max(1, Math.round(this.videoHeight * scale));
+        const left = Math.max(0, Math.round((parentWidth - width) / 2));
+        const top = Math.max(0, Math.round((parentHeight - height) / 2));
+        this.applyLayerSize(this.tag, width, height, left, top);
+        this.applyLayerSize(this.touchableCanvas, width, height, left, top);
+
+        const nextSize = new Size(width, height);
+        if (!this.displaySize?.equals(nextSize)) {
+            this.displaySize = nextSize;
+            this.emit('video-view-resize', nextSize);
+        }
+    }
+
+    private applyLayerSize(element: HTMLElement, width: number, height: number, left: number, top: number): void {
+        element.style.width = `${width}px`;
+        element.style.height = `${height}px`;
+        element.style.left = `${left}px`;
+        element.style.top = `${top}px`;
     }
 
     public getDisplayInfo(): DisplayInfo | undefined {
